@@ -1,4 +1,6 @@
-# Ticketsapp 🎫
+# Kanbot 📋
+
+https://kanbot.live
 
 Un "Trello de WhatsApp": un bot que maneja tickets con comandos, en grupos o en privado,
 más un tablero web sencillo para verlos y editarlos.
@@ -60,6 +62,8 @@ Variables: `DATA_DIR`, `PORT` (3000), `WEB_HOST` (127.0.0.1), `PUBLIC_URL` (la q
 
 ## Deploy en un droplet (con git)
 
+Adentro del servidor el servicio, el usuario y las carpetas siguen llamándose `ticketsapp` (el nombre original del proyecto).
+
 Primera vez, en el droplet como root:
 
 ```bash
@@ -84,7 +88,7 @@ systemctl start ticketsapp
 Publicar la web con HTTPS (con dominio propio, o con `IP.sslip.io` si no tenés):
 
 ```bash
-bash deploy/setup-web.sh tickets.midominio.com
+bash deploy/setup-web.sh kanbot.live
 # o
 bash deploy/setup-web.sh "$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address).sslip.io"
 ```

@@ -1,5 +1,5 @@
 [Unit]
-Description=Ticketsapp WhatsApp bot
+Description=Kanbot WhatsApp bot
 After=network-online.target
 Wants=network-online.target
 

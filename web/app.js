@@ -1,3 +1,4 @@
+// Nombre viejo a propósito: cambiarlo desloguearía a quien ya entró.
 const KEY_STORAGE = "ticketsapp.key";
 const POLL_MS = 15_000;
 
@@ -80,7 +81,7 @@ async function load() {
   const data = await api("/api/board");
   tickets = data.tickets;
   $("board-name").textContent = data.name || "Tickets";
-  document.title = `${data.name || "Tickets"} · Ticketsapp`;
+  document.title = `${data.name || "Tickets"} · Kanbot`;
   render();
 }
 

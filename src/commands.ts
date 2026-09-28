@@ -48,7 +48,7 @@ export function parseCommand(text: string): Command | null {
 }
 
 export const HELP_TEXT = [
-  "*Ticketsapp* 🎫",
+  "*Kanbot* 📋",
   "",
   "@add <texto> — crea un ticket",
   "@list — muestra los tickets",

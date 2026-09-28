@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Publica el tablero web con HTTPS (Caddy saca el certificado solo). En el droplet, como root:
-#   bash deploy/setup-web.sh tickets.midominio.com
+#   bash deploy/setup-web.sh kanbot.live
 # Sin dominio propio, sslip.io apunta cualquier "IP.sslip.io" a esa IP:
 #   bash deploy/setup-web.sh "$(curl -s http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address).sslip.io"
 set -euo pipefail
