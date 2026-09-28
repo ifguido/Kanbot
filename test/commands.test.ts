@@ -82,7 +82,7 @@ describe("handleMessage", () => {
   });
 
   it("gives a stable web link and rotates it on demand", async () => {
-    const keyOf = (reply: string | null) => reply?.match(/https:\/\/tickets\.test\/#([\w-]+)/)?.[1];
+    const keyOf = (reply: string | null) => reply?.match(/https:\/\/tickets\.test\/board#([\w-]+)/)?.[1];
 
     const first = keyOf(await send("@web"));
     expect(first).toBeTruthy();

@@ -21,9 +21,13 @@ Alias: `@ls`, `@rm`. Los comandos con número aceptan varios (`@done 1 2 #3`). T
 - Cada chat es un board: un grupo comparte sus tickets; un chat privado con el bot tiene los suyos.
 - En grupos el bot solo responde a comandos conocidos (ignora la charla y las menciones tipo `@juan`).
 
-## Tablero web
+## Web
 
-`@web` responde con un link tipo `https://dominio/#<clave>`. La clave es de ese chat: quien tenga el link
+En `/` está la landing (`web/landing.*`) y en `/board` el tablero (`web/board.html`, `app.js`, `style.css`).
+El número del bot que usa la landing está en `web/landing.js` (`BOT_PHONE`) y en `web/kanbot.vcf`.
+
+`@web` responde con un link tipo `https://kanbot.live/board#<clave>` (los links viejos `/#<clave>` redirigen
+solos). La clave es de ese chat: quien tenga el link
 puede ver y editar sus tickets. La clave viaja en el `#`, que el navegador no manda al servidor ni queda en logs;
 la web la guarda en el navegador y la manda en cada pedido a la API.
 
@@ -67,7 +71,7 @@ Adentro del servidor el servicio, el usuario y las carpetas siguen llamándose `
 Primera vez, en el droplet como root:
 
 ```bash
-git clone https://github.com/ifguido/Ticketsapp.git /opt/ticketsapp
+git clone https://github.com/ifguido/Kanbot.git /opt/ticketsapp
 cd /opt/ticketsapp
 bash deploy/setup.sh                       # Node 22, swap, firewall, usuario ticketsapp
 npm ci && npm run build

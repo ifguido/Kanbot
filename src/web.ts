@@ -5,10 +5,20 @@ import type { WebKeys } from "./webKeys.js";
 
 const WEB_DIR = new URL("../web/", import.meta.url);
 
+const HTML = "text/html; charset=utf-8";
+const JS = "text/javascript; charset=utf-8";
+const CSS = "text/css; charset=utf-8";
+
 const ASSETS: Record<string, { file: string; type: string }> = {
-  "/": { file: "index.html", type: "text/html; charset=utf-8" },
-  "/app.js": { file: "app.js", type: "text/javascript; charset=utf-8" },
-  "/style.css": { file: "style.css", type: "text/css; charset=utf-8" },
+  "/": { file: "landing.html", type: HTML },
+  "/landing.js": { file: "landing.js", type: JS },
+  "/landing.css": { file: "landing.css", type: CSS },
+  "/board": { file: "board.html", type: HTML },
+  "/app.js": { file: "app.js", type: JS },
+  "/style.css": { file: "style.css", type: CSS },
+  "/favicon.svg": { file: "favicon.svg", type: "image/svg+xml" },
+  "/og.png": { file: "og.png", type: "image/png" },
+  "/kanbot.vcf": { file: "kanbot.vcf", type: "text/vcard; charset=utf-8" },
 };
 
 const MAX_BODY_BYTES = 64 * 1024;
@@ -130,7 +140,15 @@ function json(res: ServerResponse, status: number, body: unknown): void {
 function setSecurityHeaders(res: ServerResponse): void {
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+    [
+      "default-src 'self'",
+      // La landing usa Google Fonts.
+      "style-src 'self' https://fonts.googleapis.com",
+      "font-src https://fonts.gstatic.com",
+      "frame-ancestors 'none'",
+      "base-uri 'none'",
+      "form-action 'none'",
+    ].join("; "),
   );
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "no-referrer");

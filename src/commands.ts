@@ -121,7 +121,7 @@ export async function handleMessage({ store, keys, publicUrl }: Deps, ctx: Messa
       const key = await keys.keyFor(ctx.boardId, await ctx.chatName(), { rotate: command.rotate });
       return [
         command.rotate ? "🔑 Link nuevo (el anterior ya no funciona):" : "🔗 Tablero web:",
-        `${publicUrl}/#${key}`,
+        `${publicUrl}/board#${key}`,
         "",
         "Cualquiera con este link puede ver y editar los tickets de este chat. Para invalidarlo: @web nueva",
       ].join("\n");

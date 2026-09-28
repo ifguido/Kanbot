@@ -37,12 +37,20 @@ describe("web", () => {
     await rm(dir, { recursive: true, force: true });
   });
 
-  it("serves the page with a strict CSP", async () => {
-    const res = await fetch(base + "/");
-    expect(res.status).toBe(200);
-    expect(res.headers.get("content-type")).toMatch(/text\/html/);
-    expect(res.headers.get("content-security-policy")).toContain("default-src 'self'");
-    expect((await fetch(base + "/app.js")).status).toBe(200);
+  it("serves the landing and the board with a strict CSP", async () => {
+    const landing = await fetch(base + "/");
+    expect(landing.status).toBe(200);
+    expect(landing.headers.get("content-type")).toMatch(/text\/html/);
+    expect(landing.headers.get("content-security-policy")).toContain("default-src 'self'");
+    expect(await landing.text()).toContain("sin salir de WhatsApp");
+
+    const board = await fetch(base + "/board");
+    expect(board.status).toBe(200);
+    expect(await board.text()).toContain('id="editor"');
+
+    for (const asset of ["/app.js", "/landing.js", "/landing.css", "/favicon.svg", "/og.png", "/kanbot.vcf"]) {
+      expect((await fetch(base + asset)).status, asset).toBe(200);
+    }
     expect((await fetch(base + "/package.json")).status).toBe(404);
     expect((await fetch(base + "/../package.json")).status).toBe(404);
   });
