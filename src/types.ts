@@ -10,7 +10,7 @@ export interface NewTicket {
   createdBy: string;
 }
 
-/** Un "board" es un chat de WhatsApp: cada chat tiene su propia lista de tickets. */
+/** Un "board" es un chat de WhatsApp (grupo o privado): cada chat tiene su propia lista de tickets. */
 export interface TicketStore {
   add(boardId: string, ticket: NewTicket): Promise<Ticket>;
   /** Devuelve el ticket borrado, o null si no existía. */

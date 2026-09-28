@@ -1,0 +1,18 @@
+[Unit]
+Description=Ticketsapp WhatsApp bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ticketsapp
+WorkingDirectory=/opt/ticketsapp
+# Crea /var/lib/ticketsapp con dueño ticketsapp. Ahí viven boards/ y auth/.
+StateDirectory=ticketsapp
+Environment=DATA_DIR=/var/lib/ticketsapp
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node dist/index.js
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

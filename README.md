@@ -1,6 +1,6 @@
 # Ticketsapp 🎫
 
-Un "Trello de WhatsApp": un bot que maneja tickets con comandos.
+Un "Trello de WhatsApp": un bot que maneja tickets con comandos, en grupos o en privado.
 
 ```
 @add Arreglar la canilla     → ✅ #1 Arreglar la canilla
@@ -9,96 +9,63 @@ Un "Trello de WhatsApp": un bot que maneja tickets con comandos.
 @help
 ```
 
-Alias: `@ls`, `@rm`. `@remove` acepta varios ids (`@remove 1 2 #3`). Cada chat tiene su propio board.
+Alias: `@ls`, `@rm`. `@remove` acepta varios ids (`@remove 1 2 #3`).
+
+- Cada chat es un board: un grupo comparte sus tickets; un chat privado con el bot tiene los suyos.
+- En grupos el bot solo responde a comandos conocidos (ignora la charla y las menciones tipo `@juan`).
 
 ## Stack
 
-- **WhatsApp Cloud API** (oficial de Meta) → webhook HTTP.
-- **Firebase Cloud Functions v2** (una sola function, `whatsappWebhook`, en `southamerica-east1`).
-- **Firestore** para los datos.
-
-Costo esperado para uso personal/equipo chico: **$0**. Las respuestas dentro de la ventana de 24 h
-después de que el usuario escribe son gratis en WhatsApp, y el free tier de Functions/Firestore sobra.
+- **[Baileys](https://github.com/WhiskeySockets/Baileys)**: se conecta a WhatsApp como un "dispositivo vinculado"
+  (igual que WhatsApp Web). No es oficial: usá un chip aparte, no tu número personal.
+- **Archivos JSON** en disco, uno por chat.
+- **Un droplet** de DigitalOcean con systemd.
 
 ```
-WhatsApp ──webhook──▶ whatsappWebhook ──▶ Firestore
-    ▲                       │
-    └──── Graph API ◀───────┘
+data/
+  auth/                      sesión de WhatsApp (lo que genera escanear el QR)
+  boards/<chatId>.json       { nextNumber, tickets: [...] }
 ```
 
-### Datos
+Las escrituras se hacen a un `.tmp` + rename (un crash no deja archivos a medias) y se serializan por
+chat (dos `@add` simultáneos nunca reciben el mismo número).
 
-```
-boards/{chatId}                    { nextNumber }
-boards/{chatId}/tickets/{number}   { number, title, createdBy, createdAt }
-processedMessages/{messageId}      { expiresAt }   ← dedupe de reintentos de Meta
-```
-
-## Código
-
-```
-functions/src/
-  index.ts           webhook (verificación GET, firma, dedupe, respuesta)
-  commands.ts        parser + lógica de comandos (puro, testeado)
-  firestoreStore.ts  TicketStore sobre Firestore
-  whatsapp.ts        firma, parseo del payload y envío de mensajes
-  types.ts
-```
+## Desarrollo
 
 ```bash
-cd functions
 npm install
 npm test
-npm run build
+npm run dev        # compila, arranca y muestra el QR; datos en ./data
 ```
 
-## Setup (una sola vez)
+## Deploy en un droplet
 
-### 1. Firebase
+1. Crear un droplet **Ubuntu 24.04**, 1 GB (USD 6/mes), con tu clave SSH.
+2. Preparar el servidor (una sola vez):
+   ```bash
+   ssh root@IP 'bash -s' < deploy/setup.sh
+   ```
+   Instala Node 22, crea swap, activa el firewall (solo SSH) y crea el usuario `ticketsapp`.
+3. Subir y arrancar:
+   ```bash
+   npm run deploy -- root@IP
+   ```
+   Corre los tests, compila, copia a `/opt/ticketsapp` y reinicia el servicio.
+4. Escanear el QR (solo la primera vez):
+   ```bash
+   ssh root@IP journalctl -u ticketsapp -f
+   ```
+   En el celular del bot: WhatsApp → Dispositivos vinculados → Vincular dispositivo.
 
-1. Crear proyecto en https://console.firebase.google.com y cambiar el id en `.firebaserc`.
-2. Pasar al plan **Blaze** (requerido para Functions; con este volumen no se paga nada).
-   Conviene poner una alerta de presupuesto de USD 1.
-3. Crear la base de Firestore (modo producción) en `southamerica-east1`.
-4. `cd functions && npx firebase login`
+Para actualizar, repetir el paso 3.
 
-### 2. Meta / WhatsApp
-
-1. https://developers.facebook.com → crear app tipo **Business** → agregar el producto **WhatsApp**.
-2. En *WhatsApp → API Setup* anotar el **Phone number ID** y agregar tu número como destinatario de prueba.
-3. Token permanente: *Business Settings → System users* → crear uno, asignarle la app y generar un token
-   con permiso `whatsapp_business_messaging`. (El token temporal de API Setup dura 24 h.)
-4. *App settings → Basic* → copiar el **App Secret**.
-
-### 3. Secrets y deploy
+### Operación
 
 ```bash
-cd functions
-npx firebase functions:secrets:set WHATSAPP_TOKEN          # token del system user
-npx firebase functions:secrets:set WHATSAPP_APP_SECRET     # app secret
-npx firebase functions:secrets:set WHATSAPP_VERIFY_TOKEN   # cualquier string que inventes
-npm run deploy
+ssh root@IP journalctl -u ticketsapp -f          # logs
+ssh root@IP systemctl restart ticketsapp         # reiniciar
 ```
 
-Opcional: TTL para limpiar `processedMessages` sola:
-
-```bash
-gcloud firestore fields ttls update expiresAt --collection-group=processedMessages --enable-ttl
-```
-
-### 4. Conectar el webhook
-
-En *WhatsApp → Configuration*:
-
-- **Callback URL**: la URL de `whatsappWebhook` que imprime el deploy.
-- **Verify token**: el mismo `WHATSAPP_VERIFY_TOKEN`.
-- Suscribirse al campo **messages**.
-
-Mandale `@help` al número del bot. 🎉
-
-## Limitaciones
-
-- **Grupos**: la Cloud API oficial trabaja con chats 1 a 1; la API de grupos de Meta tiene acceso restringido.
-  Hoy cada persona que le escribe al bot tiene su propio board. Para boards compartidos se puede
-  agregar un comando tipo `@join <board>` sin cambiar el stack.
-- Los mensajes proactivos (fuera de la ventana de 24 h, ej. recordatorios) requieren templates aprobados y se cobran.
+- **Datos**: `/var/lib/ticketsapp/`. Para backup alcanza con copiar esa carpeta
+  (o activar los backups de DigitalOcean).
+- **Si cerrás la sesión desde el celular**, el bot borra `auth/` y se reinicia mostrando un QR nuevo.

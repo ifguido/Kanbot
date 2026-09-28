@@ -52,12 +52,14 @@ export interface MessageContext {
   boardId: string;
   sender: string;
   text: string;
+  /** En grupos solo respondemos a comandos conocidos; la gente también charla ahí. */
+  isGroup: boolean;
 }
 
 /** Ejecuta el mensaje contra el store y devuelve el texto a responder (o null para no responder). */
 export async function handleMessage(store: TicketStore, ctx: MessageContext): Promise<string | null> {
   const command = parseCommand(ctx.text);
-  if (!command) return "Escribí @help para ver los comandos.";
+  if (!command) return ctx.isGroup ? null : "Escribí @help para ver los comandos.";
 
   switch (command.kind) {
     case "add": {
@@ -89,6 +91,7 @@ export async function handleMessage(store: TicketStore, ctx: MessageContext): Pr
       return HELP_TEXT;
 
     case "unknown":
-      return `No conozco @${command.name}.\n\n${HELP_TEXT}`;
+      // En grupos "@juan" es una mención, no un comando mal escrito.
+      return ctx.isGroup ? null : `No conozco @${command.name}.\n\n${HELP_TEXT}`;
   }
 }
