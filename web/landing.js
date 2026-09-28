@@ -36,7 +36,7 @@ function bubble({ from, text }) {
     const who = document.createElement("span");
     who.className = "who";
     who.dataset.person = from;
-    who.textContent = from === "Kanbot" ? "Kanbot 🤖" : from;
+    who.textContent = from;
     el.append(who);
   }
 
@@ -77,14 +77,16 @@ function typing() {
 
 // ---------- Hero: conversación en loop ----------
 
+// Lo primero que se ve: cargar tareas y listarlas.
 const HERO_SCRIPT = [
   { from: "Sofi", text: "@add Diseñar la landing" },
   { from: "Kanbot", text: "✅ #1 Diseñar la landing" },
   { from: "Martín", text: "@add Configurar el dominio" },
   { from: "Kanbot", text: "✅ #2 Configurar el dominio" },
-  { from: "Caro", text: "@done 2" },
-  { from: "Kanbot", text: "➡️ #2 Hecho: Configurar el dominio" },
-  { from: "Martín", text: "qué rápido esto 🤯" },
+  { from: "Caro", text: "@add Grabar el video" },
+  { from: "Kanbot", text: "✅ #3 Grabar el video" },
+  { from: "Martín", text: "@list" },
+  { from: "Kanbot", text: "*Por hacer (3)*\n#1 Diseñar la landing\n#2 Configurar el dominio\n#3 Grabar el video" },
 ];
 
 async function heroLoop(chat) {
@@ -200,32 +202,3 @@ const revealObserver = new IntersectionObserver(
   { threshold: 0.15 },
 );
 document.querySelectorAll("[data-reveal]").forEach((el) => revealObserver.observe(el));
-
-// ---------- Detalles ----------
-
-const nav = document.querySelector(".nav");
-const onScroll = () => nav.classList.toggle("scrolled", scrollY > 12);
-addEventListener("scroll", onScroll, { passive: true });
-onScroll();
-
-if (!reduceMotion && matchMedia("(pointer: fine)").matches) {
-  const visual = document.querySelector(".hero-visual");
-  for (const card of visual.querySelectorAll("[data-depth]")) card.style.setProperty("--depth", card.dataset.depth);
-  addEventListener(
-    "pointermove",
-    (e) => {
-      visual.style.setProperty("--px", (e.clientX / innerWidth - 0.5).toFixed(3));
-      visual.style.setProperty("--py", (e.clientY / innerHeight - 0.5).toFixed(3));
-    },
-    { passive: true },
-  );
-
-  // Brillo que sigue al mouse en las tarjetas de features.
-  for (const feature of document.querySelectorAll(".feature")) {
-    feature.addEventListener("pointermove", (e) => {
-      const rect = feature.getBoundingClientRect();
-      feature.style.setProperty("--mx", `${e.clientX - rect.left}px`);
-      feature.style.setProperty("--my", `${e.clientY - rect.top}px`);
-    });
-  }
-}

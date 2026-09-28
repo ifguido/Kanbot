@@ -1,36 +1,39 @@
+/* Misma estética que la landing: blanco y negro, sin radios, IBM Plex. */
 :root {
   color-scheme: light dark;
-  --bg: #f4f5f7;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --column: #ebecf0;
-  --text: #172b4d;
-  --muted: #5e6c84;
-  --border: #dfe1e6;
-  --accent: #0c66e4;
+  --column: #f6f6f6;
+  --text: #0a0a0a;
+  --muted: #6b6b6b;
+  --border: #e4e4e4;
+  --accent: #0a0a0a;
   --accent-text: #ffffff;
   --danger: #c9372c;
-  --drop: #d6e4ff;
-  --shadow: 0 1px 2px rgb(9 30 66 / 0.25);
+  --drop: #e4e4e4;
+  --shadow: 0 0 0 1px var(--border);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1d2125;
-    --surface: #22272b;
-    --column: #161a1d;
-    --text: #dee4ea;
-    --muted: #9fadbc;
-    --border: #384048;
-    --accent: #579dff;
-    --accent-text: #1d2125;
+    --bg: #0a0a0a;
+    --surface: #0a0a0a;
+    --column: #141414;
+    --text: #f2f2f2;
+    --muted: #9a9a9a;
+    --border: #262626;
+    --accent: #f2f2f2;
+    --accent-text: #0a0a0a;
     --danger: #f87168;
-    --drop: #1c2b41;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+    --drop: #262626;
   }
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+  border-radius: 0 !important;
 }
 
 [hidden] {
@@ -39,7 +42,7 @@
 
 body {
   margin: 0;
-  font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font: 15px/1.4 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -253,7 +256,7 @@ dialog {
 }
 
 dialog::backdrop {
-  background: rgb(9 30 66 / 0.5);
+  background: rgb(10 10 10 / 0.6);
 }
 
 #editor-form {

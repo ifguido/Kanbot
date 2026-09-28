@@ -17,6 +17,7 @@ const ASSETS: Record<string, { file: string; type: string }> = {
   "/app.js": { file: "app.js", type: JS },
   "/style.css": { file: "style.css", type: CSS },
   "/favicon.svg": { file: "favicon.svg", type: "image/svg+xml" },
+  "/pattern.svg": { file: "pattern.svg", type: "image/svg+xml" },
   "/og.png": { file: "og.png", type: "image/png" },
   "/kanbot.vcf": { file: "kanbot.vcf", type: "text/vcard; charset=utf-8" },
 };
