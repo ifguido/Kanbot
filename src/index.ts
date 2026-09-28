@@ -9,15 +9,26 @@ import {
 } from "baileys";
 import pino from "pino";
 import qrcode from "qrcode-terminal";
-import { handleMessage } from "./commands.js";
+import { handleMessage, type Deps } from "./commands.js";
 import { FileTicketStore } from "./fileStore.js";
+import { createWebServer } from "./web.js";
+import { WebKeys } from "./webKeys.js";
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR ?? "data");
 const AUTH_DIR = path.join(DATA_DIR, "auth");
 /** Si está definido (ej. 5491122334455), se vincula con código de 8 letras en vez de QR. */
 const PAIRING_PHONE = process.env.PAIRING_PHONE?.replace(/\D/g, "");
 
-const store = new FileTicketStore(path.join(DATA_DIR, "boards"));
+const PORT = Number(process.env.PORT ?? 3000);
+/** Por defecto solo escucha local: en el droplet Caddy pone el HTTPS adelante. */
+const WEB_HOST = process.env.WEB_HOST ?? "127.0.0.1";
+const PUBLIC_URL = (process.env.PUBLIC_URL ?? `http://localhost:${PORT}`).replace(/\/+$/, "");
+
+const deps: Deps = {
+  store: new FileTicketStore(path.join(DATA_DIR, "boards")),
+  keys: new WebKeys(path.join(DATA_DIR, "webkeys.json")),
+  publicUrl: PUBLIC_URL,
+};
 const logger = pino({ level: process.env.LOG_LEVEL ?? "warn" });
 
 function textOf(msg: WAMessage): string | undefined {
@@ -74,13 +85,15 @@ async function start(): Promise<void> {
       if (!text) continue;
 
       const isGroup = chat.endsWith("@g.us");
+      const sender = msg.pushName ?? (msg.key.participant ?? chat).split("@")[0];
       let reply: string | null;
       try {
-        reply = await handleMessage(store, {
+        reply = await handleMessage(deps, {
           boardId: chat,
-          sender: msg.pushName ?? (msg.key.participant ?? chat).split("@")[0],
+          sender,
           text,
           isGroup,
+          chatName: async () => (isGroup ? (await sock.groupMetadata(chat)).subject : sender),
         });
       } catch (err) {
         console.error("Error procesando mensaje", { chat, err });
@@ -101,4 +114,5 @@ function fatal(err: unknown): never {
   process.exit(1);
 }
 
+createWebServer(deps).listen(PORT, WEB_HOST, () => console.log(`🌐 Tablero web en ${PUBLIC_URL}`));
 start().catch(fatal);

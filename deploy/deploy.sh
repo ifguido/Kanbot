@@ -10,7 +10,7 @@ npm test
 npm run build
 
 rsync -az --delete \
-  dist package.json package-lock.json deploy/ticketsapp.service \
+  dist web package.json package-lock.json deploy/ticketsapp.service \
   "$HOST:/opt/ticketsapp/"
 
 ssh "$HOST" '

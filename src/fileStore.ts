@@ -1,82 +1,102 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { NewTicket, Ticket, TicketStore } from "./types.js";
+import { KeyedMutex, readJson, writeJsonAtomic } from "./jsonFile.js";
+import type { NewTicket, Status, Ticket, TicketPatch, TicketStore } from "./types.js";
+
+interface StoredTicket {
+  number: number;
+  title: string;
+  // Opcionales: los boards creados antes de los estados no los tienen.
+  description?: string;
+  status?: Status;
+  createdBy: string;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 interface BoardFile {
   nextNumber: number;
-  tickets: Array<Omit<Ticket, "createdAt"> & { createdAt: string }>;
+  tickets: StoredTicket[];
 }
 
 /**
  * Un archivo JSON por board: {dir}/{boardId}.json
- *
- * - Las escrituras de un mismo board se serializan (no hay dos #3).
- * - Se escribe a un .tmp y se renombra, así un crash nunca deja un archivo a medias.
+ * Las escrituras de un mismo board se serializan (no hay dos #3).
  */
 export class FileTicketStore implements TicketStore {
-  private locks = new Map<string, Promise<unknown>>();
+  private mutex = new KeyedMutex();
 
   constructor(private readonly dir: string) {}
 
-  async add(boardId: string, ticket: NewTicket): Promise<Ticket> {
-    return this.exclusive(boardId, async () => {
+  add(boardId: string, ticket: NewTicket): Promise<Ticket> {
+    return this.mutex.run(boardId, async () => {
       const board = await this.read(boardId);
-      const created: Ticket = { number: board.nextNumber, ...ticket, createdAt: new Date() };
-      board.nextNumber++;
-      board.tickets.push({ ...created, createdAt: created.createdAt.toISOString() });
+      const now = new Date().toISOString();
+      const stored: StoredTicket = {
+        number: board.nextNumber++,
+        title: ticket.title,
+        description: ticket.description ?? "",
+        status: ticket.status ?? "todo",
+        createdBy: ticket.createdBy,
+        createdAt: now,
+        updatedAt: now,
+      };
+      board.tickets.push(stored);
       await this.write(boardId, board);
-      return created;
+      return toTicket(stored);
     });
   }
 
-  async remove(boardId: string, number: number): Promise<Ticket | null> {
-    return this.exclusive(boardId, async () => {
+  update(boardId: string, number: number, patch: TicketPatch): Promise<Ticket | null> {
+    return this.mutex.run(boardId, async () => {
+      const board = await this.read(boardId);
+      const stored = board.tickets.find((t) => t.number === number);
+      if (!stored) return null;
+      if (patch.title !== undefined) stored.title = patch.title;
+      if (patch.description !== undefined) stored.description = patch.description;
+      if (patch.status !== undefined) stored.status = patch.status;
+      stored.updatedAt = new Date().toISOString();
+      await this.write(boardId, board);
+      return toTicket(stored);
+    });
+  }
+
+  remove(boardId: string, number: number): Promise<Ticket | null> {
+    return this.mutex.run(boardId, async () => {
       const board = await this.read(boardId);
       const index = board.tickets.findIndex((t) => t.number === number);
       if (index === -1) return null;
       const [removed] = board.tickets.splice(index, 1);
       await this.write(boardId, board);
-      return { ...removed, createdAt: new Date(removed.createdAt) };
+      return toTicket(removed);
     });
   }
 
   async list(boardId: string): Promise<Ticket[]> {
     const board = await this.read(boardId);
-    return board.tickets
-      .map((t) => ({ ...t, createdAt: new Date(t.createdAt) }))
-      .sort((a, b) => a.number - b.number);
+    return board.tickets.map(toTicket).sort((a, b) => a.number - b.number);
   }
 
   private file(boardId: string): string {
     return path.join(this.dir, `${boardId.replace(/[^\w.@-]/g, "_")}.json`);
   }
 
-  private async read(boardId: string): Promise<BoardFile> {
-    try {
-      return JSON.parse(await readFile(this.file(boardId), "utf8"));
-    } catch (err: any) {
-      if (err?.code === "ENOENT") return { nextNumber: 1, tickets: [] };
-      throw err;
-    }
+  private read(boardId: string): Promise<BoardFile> {
+    return readJson(this.file(boardId), () => ({ nextNumber: 1, tickets: [] }));
   }
 
-  private async write(boardId: string, board: BoardFile): Promise<void> {
-    await mkdir(this.dir, { recursive: true });
-    const file = this.file(boardId);
-    const tmp = `${file}.${process.pid}.tmp`;
-    await writeFile(tmp, JSON.stringify(board, null, 2));
-    await rename(tmp, file);
+  private write(boardId: string, board: BoardFile): Promise<void> {
+    return writeJsonAtomic(this.file(boardId), board);
   }
+}
 
-  /** Encola la tarea detrás de las anteriores del mismo board. */
-  private exclusive<T>(boardId: string, task: () => Promise<T>): Promise<T> {
-    const previous = this.locks.get(boardId) ?? Promise.resolve();
-    const result = previous.then(task, task);
-    const tail = result.catch(() => {});
-    this.locks.set(boardId, tail);
-    void tail.then(() => {
-      if (this.locks.get(boardId) === tail) this.locks.delete(boardId);
-    });
-    return result;
-  }
+function toTicket(stored: StoredTicket): Ticket {
+  return {
+    number: stored.number,
+    title: stored.title,
+    description: stored.description ?? "",
+    status: stored.status ?? "todo",
+    createdBy: stored.createdBy,
+    createdAt: new Date(stored.createdAt),
+    updatedAt: new Date(stored.updatedAt ?? stored.createdAt),
+  };
 }

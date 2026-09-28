@@ -6,10 +6,13 @@ Wants=network-online.target
 [Service]
 User=ticketsapp
 WorkingDirectory=/opt/ticketsapp
-# Crea /var/lib/ticketsapp con dueño ticketsapp. Ahí viven boards/ y auth/.
+# Crea /var/lib/ticketsapp con dueño ticketsapp. Ahí viven boards/, auth/ y webkeys.json.
 StateDirectory=ticketsapp
 Environment=DATA_DIR=/var/lib/ticketsapp
 Environment=NODE_ENV=production
+Environment=PORT=3000
+# Config propia del droplet (PUBLIC_URL). La escribe deploy/setup-web.sh.
+EnvironmentFile=-/etc/ticketsapp.env
 ExecStart=/usr/bin/node dist/index.js
 Restart=always
 RestartSec=10
