@@ -14,6 +14,7 @@ const ASSETS: Record<string, { file: string; type: string }> = {
   "/landing.js": { file: "landing.js", type: JS },
   "/landing.css": { file: "landing.css", type: CSS },
   "/board": { file: "board.html", type: HTML },
+  "/terminos": { file: "terminos.html", type: HTML },
   "/app.js": { file: "app.js", type: JS },
   "/style.css": { file: "style.css", type: CSS },
   "/favicon.svg": { file: "favicon.svg", type: "image/svg+xml" },

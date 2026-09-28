@@ -325,7 +325,7 @@ a:focus-visible {
 
 .fc-2 {
   right: -28px;
-  bottom: 12px;
+  bottom: -6px;
   animation-delay: -3s;
 }
 
@@ -335,41 +335,141 @@ a:focus-visible {
   }
 }
 
-/* ---------- Ventana de chat ---------- */
+/* ---------- iPhone ----------
+   La única excepción a "sin radios": el teléfono tiene que parecer un teléfono.
+   Los radios van con !important para ganarle al reset global. */
 
-.chat-window {
+.phone {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+  height: 660px;
+  padding: 11px;
+  border-radius: 56px !important;
+  background: #0a0a0a;
+  box-shadow:
+    0 0 0 1.5px #3a3a3a,
+    0 0 0 4px #0a0a0a,
+    0 40px 80px -30px rgb(0 0 0 / 0.45);
+}
+
+/* Botones laterales */
+.phone::before,
+.phone::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  background: #2b2b2b;
+}
+
+.phone::before {
+  top: 180px;
+  right: -7px;
+  height: 84px;
+  border-radius: 0 3px 3px 0 !important;
+}
+
+.phone::after {
+  top: 150px;
+  left: -7px;
+  height: 52px;
+  border-radius: 3px 0 0 3px !important;
+  box-shadow: 0 66px 0 #2b2b2b;
+}
+
+.screen {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 400px;
-  max-width: 100%;
-  height: 580px;
-  border: 1px solid var(--ink);
+  height: 100%;
+  overflow: hidden;
+  border-radius: 45px !important;
   background: var(--bg);
 }
 
-/* Una segunda ventana corrida atrás, en gris: da profundidad sin sombras. */
-.chat-window::before {
-  content: "";
+.status-bar {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  height: 50px;
+  padding: 4px 26px 0 34px;
+}
+
+.clock {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.island {
   position: absolute;
-  inset: 12px -12px -12px 12px;
-  z-index: -1;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
+  top: 11px;
+  left: 50%;
+  width: 104px;
+  height: 30px;
+  border-radius: 20px !important;
+  background: #0a0a0a;
+  translate: -50% 0;
+}
+
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-icons svg {
+  display: block;
+  fill: currentColor;
 }
 
 .chat-head {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px;
-  background: var(--ink);
-  color: var(--bg);
+  gap: 10px;
+  padding: 4px 14px 10px 8px;
+  border-bottom: 1px solid var(--line);
 }
 
-.chat-head .muted {
-  color: rgb(255 255 255 / 0.6);
+.back {
+  font-size: 34px;
+  font-weight: 300;
+  line-height: 0.8;
+}
+
+.avatar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50% !important;
+  background: var(--ink);
+  color: var(--bg);
+  font: 500 12px var(--mono);
+  letter-spacing: 0.04em;
+}
+
+.chat-title {
+  display: grid;
+  min-width: 0;
+}
+
+.chat-title strong {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.chat-title small {
+  overflow: hidden;
+  font-size: 12px;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chat {
@@ -377,41 +477,59 @@ a:focus-visible {
   flex: 1;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 14px;
+  gap: 6px;
+  padding: 12px;
   overflow: hidden;
 }
 
 .composer {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  border-top: 1px solid var(--line);
+  padding: 8px 12px 4px;
 }
 
 .composer span {
   flex: 1;
-  padding: 10px 12px;
+  padding: 8px 14px;
   border: 1px solid var(--line);
+  border-radius: 20px !important;
   font-size: 14px;
   color: var(--muted);
 }
 
 .composer i {
-  width: 40px;
-  height: 40px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50% !important;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.home-bar {
+  flex-shrink: 0;
+  width: 124px;
+  height: 5px;
+  margin: 10px auto 9px;
+  border-radius: 3px !important;
   background: var(--ink);
 }
 
+/* Burbujas estilo iMessage, en blanco y negro */
 .msg {
   flex-shrink: 0;
-  max-width: 84%;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
+  max-width: 82%;
+  padding: 7px 12px;
+  border-radius: 18px !important;
+  background: #efefef;
   font-size: 14px;
-  line-height: 1.4;
+  line-height: 1.38;
   white-space: pre-line;
   overflow-wrap: anywhere;
   animation: pop 0.3s ease-out both;
@@ -420,26 +538,26 @@ a:focus-visible {
 .msg.them,
 .msg.bot {
   align-self: flex-start;
+  border-bottom-left-radius: 6px !important;
 }
 
 .msg.me {
   align-self: flex-end;
-  border-color: var(--ink);
+  border-bottom-right-radius: 6px !important;
   background: var(--ink);
   color: var(--bg);
 }
 
 .msg.bot {
-  border-color: var(--ink);
   background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--ink);
 }
 
 .who {
   display: block;
-  margin-bottom: 6px;
-  font: 500 10px/1 var(--mono);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--muted);
 }
 
@@ -448,14 +566,13 @@ a:focus-visible {
 }
 
 .at {
-  font-family: var(--mono);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .time {
   float: right;
-  margin: 6px 0 -2px 12px;
-  font: 10px var(--mono);
+  margin: 6px 0 -3px 10px;
+  font-size: 10.5px;
   color: var(--muted);
 }
 
@@ -465,14 +582,15 @@ a:focus-visible {
 
 .typing {
   display: flex;
-  gap: 5px;
-  padding: 12px;
+  gap: 4px;
+  padding: 12px 14px;
 }
 
 .typing i {
-  width: 5px;
-  height: 5px;
-  background: var(--ink);
+  width: 7px;
+  height: 7px;
+  border-radius: 50% !important;
+  background: var(--muted);
   animation: blink 1s infinite;
 }
 
@@ -486,14 +604,14 @@ a:focus-visible {
 
 @keyframes blink {
   50% {
-    opacity: 0.2;
+    opacity: 0.25;
   }
 }
 
 @keyframes pop {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(8px) scale(0.97);
   }
 }
 
@@ -1022,6 +1140,111 @@ a:focus-visible {
   margin: 22px 0 0;
 }
 
+/* ---------- Términos ---------- */
+
+.legal-hero {
+  padding-block: 80px 64px;
+}
+
+.legal-hero h1 {
+  margin: 20px 0 0 -0.04em;
+  font-size: clamp(40px, 5.6vw, 72px);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.legal-hero .lead {
+  max-width: 44rem;
+  margin: 24px 0 28px;
+  line-height: 1.5;
+}
+
+.legal-item {
+  display: grid;
+  grid-template-columns: 3fr 9fr;
+  gap: 32px;
+  padding-block: 48px;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal-item:last-child {
+  border-bottom: 0;
+}
+
+.legal-item > .label {
+  padding-top: 6px;
+}
+
+.legal-body {
+  max-width: 44rem;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.legal-body p {
+  margin: 0 0 16px;
+}
+
+.legal-body p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-body ul {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.legal-body ul li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+}
+
+.legal-body ul li::before {
+  content: "—";
+  font-family: var(--mono);
+}
+
+.legal-list {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: item;
+}
+
+.legal-list li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  counter-increment: item;
+}
+
+.legal-list li::before {
+  content: counter(item);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+  border: 1px solid var(--ink);
+  font: 500 12px var(--mono);
+}
+
+.legal-body a,
+.plan-note a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+
+.plan-note {
+  margin: 14px 0 0;
+  color: rgb(255 255 255 / 0.6);
+}
+
 /* ---------- Aparición al scrollear ---------- */
 
 .js [data-reveal] {
@@ -1070,13 +1293,16 @@ a:focus-visible {
     border-bottom: 0;
   }
 
+  /* Un pedazo de pantalla de iPhone: mismo radio que la pantalla del teléfono. */
   .mini-chat {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     margin-top: 28px;
-    padding: 14px;
-    border: 1px solid var(--ink);
+    padding: 16px 12px;
+    border: 1px solid var(--line);
+    border-radius: 28px !important;
+    background: var(--bg);
   }
 
   .mini-board {
@@ -1118,6 +1344,12 @@ a:focus-visible {
   .footer-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .legal-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    padding-block: 36px;
+  }
 }
 
 @media (max-width: 620px) {
@@ -1130,12 +1362,9 @@ a:focus-visible {
     width: 100%;
   }
 
-  .chat-window {
-    height: 540px;
-  }
-
-  .chat-window::before {
-    inset: 8px -8px -8px 8px;
+  .phone {
+    width: 300px;
+    height: 620px;
   }
 
   .float-card {

@@ -48,6 +48,10 @@ describe("web", () => {
     expect(board.status).toBe(200);
     expect(await board.text()).toContain('id="editor"');
 
+    const terms = await fetch(base + "/terminos");
+    expect(terms.status).toBe(200);
+    expect(await terms.text()).toContain("guido@weball.me");
+
     for (const asset of ["/app.js", "/landing.js", "/landing.css", "/favicon.svg", "/pattern.svg", "/og.png", "/kanbot.vcf"]) {
       expect((await fetch(base + asset)).status, asset).toBe(200);
     }
