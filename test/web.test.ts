@@ -52,7 +52,7 @@ describe("web", () => {
     expect(terms.status).toBe(200);
     expect(await terms.text()).toContain("guido@weball.me");
 
-    for (const asset of ["/app.js", "/landing.js", "/landing.css", "/favicon.svg", "/pattern.svg", "/og.png", "/kanbot.vcf"]) {
+    for (const asset of ["/app.js", "/landing.js", "/i18n.js", "/landing.css", "/favicon.svg", "/pattern.svg", "/og.png", "/kanbot.vcf"]) {
       expect((await fetch(base + asset)).status, asset).toBe(200);
     }
     expect((await fetch(base + "/package.json")).status).toBe(404);
@@ -76,6 +76,7 @@ describe("web", () => {
 
     const board = await (await api("/api/board")).json();
     expect(board.name).toBe("Mi grupo");
+    expect(board.lang).toBeNull();
     expect(board.tickets).toHaveLength(1);
     expect(board.tickets[0]).toMatchObject({ number: 1, status: "doing" });
 
@@ -87,7 +88,9 @@ describe("web", () => {
     await store.add("chat@g.us", { title: "a", createdBy: "x" });
     const expectError = async (res: Response, status: number) => {
       expect(res.status).toBe(status);
-      expect((await res.json()).error).toBeTruthy();
+      const body = await res.json();
+      expect(body.error).toBeTruthy();
+      expect(body.code).toMatch(/^[a-z_]+$/);
     };
     await expectError(await api("/api/tickets", { method: "POST", body: {} }), 400);
     await expectError(await api("/api/tickets", { method: "POST", body: "{nope" }), 400);
@@ -95,6 +98,11 @@ describe("web", () => {
     await expectError(await api("/api/tickets/1", { method: "PATCH", body: { title: "  " } }), 400);
     await expectError(await api("/api/tickets/1", { method: "PATCH", body: { description: "x".repeat(10_001) } }), 400);
     await expectError(await api("/api/tickets/99", { method: "PATCH", body: { title: "x" } }), 404);
+  });
+
+  it("returns the chat's pinned language so the board opens in it", async () => {
+    await store.setLang("chat@g.us", "de");
+    expect((await (await api("/api/board")).json()).lang).toBe("de");
   });
 
   it("only exposes the key's own board", async () => {

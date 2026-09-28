@@ -1,4 +1,6 @@
 // Nombre viejo a propósito: cambiarlo desloguearía a quien ya entró.
+const { t } = window.i18n;
+
 const KEY_STORAGE = "ticketsapp.key";
 const POLL_MS = 15_000;
 
@@ -63,12 +65,14 @@ async function api(path, { method = "GET", body } = {}) {
     body: body && JSON.stringify(body),
   });
   if (res.status === 401) {
-    logout("La clave no es válida o fue renovada con @web nueva.");
+    logout(t("board.invalidKey"));
     throw new Unauthorized();
   }
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.error ?? `Error ${res.status}`);
+    // El servidor manda un code; el texto va en el idioma de la página.
+    const translated = data.code ? t(`err.${data.code}`) : "";
+    throw new Error(translated && translated !== `err.${data.code}` ? translated : t("err.generic"));
   }
   return res.status === 204 ? null : res.json();
 }
@@ -79,9 +83,15 @@ function fail(err) {
 
 async function load() {
   const data = await api("/api/board");
+  // Si la persona no eligió idioma a mano, el tablero abre en el idioma fijado en el chat (@lang).
+  if (!window.i18n.chosen && data.lang && data.lang !== window.i18n.lang && !new URLSearchParams(location.search).has("lang")) {
+    location.replace(`${location.pathname}?lang=${data.lang}`);
+    return;
+  }
   tickets = data.tickets;
-  $("board-name").textContent = data.name || "Tickets";
-  document.title = `${data.name || "Tickets"} · Kanbot`;
+  const name = data.name || t("board.defaultName");
+  $("board-name").textContent = name;
+  document.title = `${name} · Kanbot`;
   render();
 }
 
@@ -189,7 +199,7 @@ document.querySelector(".add-form").addEventListener("submit", async (e) => {
 
 // ---------- Editor ----------
 
-const formatDate = (iso) => new Date(iso).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
+const formatDate = (iso) => new Date(iso).toLocaleString(t("locale"), { dateStyle: "short", timeStyle: "short" });
 
 function openEditor(number) {
   const ticket = tickets.find((t) => t.number === number);
@@ -199,8 +209,8 @@ function openEditor(number) {
   $("editor-title").value = ticket.title;
   $("editor-description").value = ticket.description;
   $("editor-status").value = ticket.status;
-  const edited = ticket.updatedAt !== ticket.createdAt ? ` · editado ${formatDate(ticket.updatedAt)}` : "";
-  $("editor-meta").textContent = `Creado por ${ticket.createdBy} · ${formatDate(ticket.createdAt)}${edited}`;
+  const edited = ticket.updatedAt !== ticket.createdAt ? t("board.edited", { date: formatDate(ticket.updatedAt) }) : "";
+  $("editor-meta").textContent = t("board.meta", { by: ticket.createdBy, date: formatDate(ticket.createdAt) }) + edited;
   editor.showModal();
 }
 
@@ -224,7 +234,7 @@ editor.addEventListener("click", (e) => {
 
 $("editor-delete").addEventListener("click", async () => {
   const number = editingNumber;
-  if (!confirm(`¿Borrar el ticket #${number}?`)) return;
+  if (!confirm(t("board.confirmDelete", { n: number }))) return;
   editor.close();
   try {
     await api(`/api/tickets/${number}`, { method: "DELETE" });

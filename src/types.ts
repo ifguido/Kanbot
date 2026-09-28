@@ -1,11 +1,7 @@
+import type { Lang } from "./i18n.js";
+
 export const STATUSES = ["todo", "doing", "done"] as const;
 export type Status = (typeof STATUSES)[number];
-
-export const STATUS_LABELS: Record<Status, string> = {
-  todo: "Por hacer",
-  doing: "Haciendo",
-  done: "Hecho",
-};
 
 export const MAX_TITLE_LENGTH = 500;
 export const MAX_DESCRIPTION_LENGTH = 10_000;
@@ -35,6 +31,9 @@ export type TicketPatch = Partial<Pick<Ticket, "title" | "description" | "status
 
 /** Un "board" es un chat de WhatsApp (grupo o privado): cada chat tiene su propia lista de tickets. */
 export interface TicketStore {
+  /** Idioma fijado con @lang, o undefined si el chat usa el automático. */
+  getLang(boardId: string): Promise<Lang | undefined>;
+  setLang(boardId: string, lang: Lang | undefined): Promise<void>;
   add(boardId: string, ticket: NewTicket): Promise<Ticket>;
   /** Devuelve el ticket actualizado, o null si no existía. */
   update(boardId: string, number: number, patch: TicketPatch): Promise<Ticket | null>;

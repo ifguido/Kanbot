@@ -1,4 +1,5 @@
-import { MAX_TITLE_LENGTH, STATUS_LABELS, type Status, type Ticket, type TicketStore } from "./types.js";
+import { DEFAULT_LANG, LANG_NAMES, MESSAGES, isLang, langFromPhone, type Lang, type Messages } from "./i18n.js";
+import { MAX_TITLE_LENGTH, type Status, type Ticket, type TicketStore } from "./types.js";
 import type { WebKeys } from "./webKeys.js";
 
 export type Command =
@@ -7,6 +8,7 @@ export type Command =
   | { kind: "move"; status: Status; numbers: number[] }
   | { kind: "list" }
   | { kind: "web"; rotate: boolean }
+  | { kind: "lang"; value: string }
   | { kind: "help" }
   | { kind: "unknown"; name: string };
 
@@ -19,7 +21,12 @@ function parseNumbers(args: string): number[] {
 
 /** Parsea "@comando args". Devuelve null si el mensaje no es un comando. */
 export function parseCommand(text: string): Command | null {
-  const match = text.trim().match(/^@(\w+)\s*([\s\S]*)$/);
+  const trimmed = text.trim();
+
+  // "@@ texto" es un atajo de "@add texto".
+  if (trimmed.startsWith("@@")) return { kind: "add", title: trimmed.slice(2).trim() };
+
+  const match = trimmed.match(/^@(\w+)\s*([\s\S]*)$/);
   if (!match) return null;
 
   const name = match[1].toLowerCase();
@@ -39,7 +46,14 @@ export function parseCommand(text: string): Command | null {
     case "ls":
       return { kind: "list" };
     case "web":
-      return { kind: "web", rotate: /^(nueva|new|reset)$/i.test(args) };
+      return { kind: "web", rotate: /^(nueva|new|reset|neu|nuovo|nuova|mpya)$/i.test(args) };
+    case "lang":
+    case "language":
+    case "idioma":
+    case "sprache":
+    case "lingua":
+    case "lugha":
+      return { kind: "lang", value: args.toLowerCase() };
     case "help":
       return { kind: "help" };
     default:
@@ -47,20 +61,9 @@ export function parseCommand(text: string): Command | null {
   }
 }
 
-export const HELP_TEXT = [
-  "*Kanbot* 📋",
-  "",
-  "@add <texto> — crea un ticket",
-  "@list — muestra los tickets",
-  "@doing <n> — pasa el #n a Haciendo",
-  "@done <n> — pasa el #n a Hecho",
-  "@todo <n> — lo vuelve a Por hacer",
-  "@remove <n> — borra el ticket",
-  "@web — link al tablero web",
-  "@help — esta ayuda",
-  "",
-  "Los que llevan <n> aceptan varios: @done 1 2 3",
-].join("\n");
+export function helpText(lang: Lang = DEFAULT_LANG): string {
+  return MESSAGES[lang].help;
+}
 
 export interface Deps {
   store: TicketStore;
@@ -72,6 +75,8 @@ export interface Deps {
 export interface MessageContext {
   boardId: string;
   sender: string;
+  /** Teléfono de quien escribe (si WhatsApp lo expone): define el idioma automático. */
+  senderPhone?: string;
   text: string;
   /** En grupos solo respondemos a comandos conocidos; la gente también charla ahí. */
   isGroup: boolean;
@@ -79,82 +84,95 @@ export interface MessageContext {
   chatName: () => Promise<string>;
 }
 
+/** El idioma fijado en el chat con @lang; si no hay, el del país de quien escribe. */
+export async function resolveLang(store: TicketStore, boardId: string, senderPhone?: string): Promise<Lang> {
+  return (await store.getLang(boardId)) ?? langFromPhone(senderPhone) ?? DEFAULT_LANG;
+}
+
 /** Ejecuta el mensaje y devuelve el texto a responder (o null para no responder). */
 export async function handleMessage({ store, keys, publicUrl }: Deps, ctx: MessageContext): Promise<string | null> {
   const command = parseCommand(ctx.text);
-  if (!command) return ctx.isGroup ? null : "Escribí @help para ver los comandos.";
+  if (!command && ctx.isGroup) return null;
+  // En grupos, "@juan" es una mención, no un comando mal escrito.
+  if (command?.kind === "unknown" && ctx.isGroup) return null;
+
+  const lang = await resolveLang(store, ctx.boardId, ctx.senderPhone);
+  const t = MESSAGES[lang];
+  if (!command) return t.privateHint;
 
   switch (command.kind) {
     case "add": {
-      if (!command.title) return "Falta el texto. Ej: @add Arreglar la canilla";
-      if (command.title.length > MAX_TITLE_LENGTH) {
-        return `El ticket es muy largo (máx ${MAX_TITLE_LENGTH} caracteres).`;
-      }
+      if (!command.title) return t.addMissing;
+      if (command.title.length > MAX_TITLE_LENGTH) return t.tooLong(MAX_TITLE_LENGTH);
       const ticket = await store.add(ctx.boardId, { title: command.title, createdBy: ctx.sender });
       return `✅ #${ticket.number} ${ticket.title}`;
     }
 
     case "remove": {
-      if (command.numbers.length === 0) return "Decime qué ticket borrar. Ej: @remove 3";
+      if (command.numbers.length === 0) return t.removeMissing;
       const lines: string[] = [];
       for (const n of command.numbers) {
         const removed = await store.remove(ctx.boardId, n);
-        lines.push(removed ? `🗑️ #${n} ${removed.title}` : `❓ #${n} no existe`);
+        lines.push(removed ? `🗑️ #${n} ${removed.title}` : t.notFound(n));
       }
       return lines.join("\n");
     }
 
     case "move": {
-      if (command.numbers.length === 0) return `Decime qué ticket mover. Ej: @${command.status} 3`;
+      if (command.numbers.length === 0) return t.moveMissing(command.status);
       const lines: string[] = [];
       for (const n of command.numbers) {
         const moved = await store.update(ctx.boardId, n, { status: command.status });
-        lines.push(moved ? `➡️ #${n} ${STATUS_LABELS[command.status]}: ${moved.title}` : `❓ #${n} no existe`);
+        lines.push(moved ? `➡️ #${n} ${t.status[command.status]}: ${moved.title}` : t.notFound(n));
       }
       return lines.join("\n");
     }
 
     case "list":
-      return formatList(await store.list(ctx.boardId));
+      return formatList(await store.list(ctx.boardId), t);
 
     case "web": {
       const key = await keys.keyFor(ctx.boardId, await ctx.chatName(), { rotate: command.rotate });
-      return [
-        command.rotate ? "🔑 Link nuevo (el anterior ya no funciona):" : "🔗 Tablero web:",
-        `${publicUrl}/board#${key}`,
-        "",
-        "Cualquiera con este link puede ver y editar los tickets de este chat. Para invalidarlo: @web nueva",
-      ].join("\n");
+      return [command.rotate ? t.webRotated : t.webLink, `${publicUrl}/board#${key}`, "", t.webWarning].join("\n");
+    }
+
+    case "lang": {
+      if (command.value === "auto") {
+        await store.setLang(ctx.boardId, undefined);
+        return MESSAGES[langFromPhone(ctx.senderPhone) ?? DEFAULT_LANG].langAuto;
+      }
+      if (!isLang(command.value)) return t.langUsage;
+      await store.setLang(ctx.boardId, command.value);
+      return MESSAGES[command.value].langSet(LANG_NAMES[command.value]);
     }
 
     case "help":
-      return HELP_TEXT;
+      return t.help;
 
     case "unknown":
-      // En grupos "@juan" es una mención, no un comando mal escrito.
-      return ctx.isGroup ? null : `No conozco @${command.name}.\n\n${HELP_TEXT}`;
+      return `${t.unknown(command.name)}\n\n${t.help}`;
   }
 }
 
 /** Pendientes agrupados por estado; los hechos solo se cuentan (se ven en la web). */
-function formatList(tickets: Ticket[]): string {
-  if (tickets.length === 0) return "No hay tickets 🎉";
+function formatList(tickets: Ticket[], t: Messages): string {
+  if (tickets.length === 0) return t.empty;
 
   const sections: string[] = [];
   for (const status of ["todo", "doing"] as const) {
-    const group = tickets.filter((t) => t.status === status);
+    const group = tickets.filter((ticket) => ticket.status === status);
     if (group.length === 0) continue;
     sections.push(
       [
-        `*${STATUS_LABELS[status]} (${group.length})*`,
-        ...group.map((t) => `#${t.number} ${t.title}${t.description ? " 📝" : ""}`),
+        `*${t.status[status]} (${group.length})*`,
+        ...group.map((ticket) => `#${ticket.number} ${ticket.title}${ticket.description ? " 📝" : ""}`),
       ].join("\n"),
     );
   }
-  if (sections.length === 0) sections.push("No hay tickets pendientes 🎉");
+  if (sections.length === 0) sections.push(t.noPending);
 
-  const done = tickets.filter((t) => t.status === "done").length;
-  if (done > 0) sections.push(`✔️ ${done} ${done === 1 ? "hecho" : "hechos"}`);
+  const done = tickets.filter((ticket) => ticket.status === "done").length;
+  if (done > 0) sections.push(t.doneCount(done));
 
   return sections.join("\n\n");
 }

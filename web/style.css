@@ -40,6 +40,19 @@
   display: none !important;
 }
 
+/* Mientras i18n.js traduce, no mostramos el español de base: evita el destello. */
+.i18n-pending body {
+  visibility: hidden;
+}
+
+.lang-select {
+  width: auto;
+  padding: 6px 8px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
 body {
   margin: 0;
   font: 15px/1.4 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;

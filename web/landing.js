@@ -23,6 +23,20 @@ groupDialog.addEventListener("click", (e) => {
   if (e.target === groupDialog || e.target.closest("[data-close]")) groupDialog.close();
 });
 
+// ---------- Marquee ----------
+
+const marqueeItems = window.i18n.t("marquee").split("|");
+const marqueeTrack = document.querySelector(".marquee-track");
+marqueeTrack.replaceChildren(
+  ...[...marqueeItems, ...marqueeItems].map((item, i) => {
+    const span = document.createElement("span");
+    span.textContent = item;
+    // La segunda vuelta es solo para que el loop no tenga corte.
+    if (i >= marqueeItems.length) span.setAttribute("aria-hidden", "true");
+    return span;
+  }),
+);
+
 // ---------- Burbujas de chat ----------
 
 const ME = "Sofi";
@@ -77,17 +91,25 @@ function typing() {
 
 // ---------- Hero: conversación en loop ----------
 
-// Lo primero que se ve: cargar tareas y listarlas.
-const HERO_SCRIPT = [
-  { from: "Sofi", text: "@add Diseñar la landing" },
-  { from: "Kanbot", text: "✅ #1 Diseñar la landing" },
-  { from: "Martín", text: "@add Configurar el dominio" },
-  { from: "Kanbot", text: "✅ #2 Configurar el dominio" },
-  { from: "Caro", text: "@add Grabar el video" },
-  { from: "Kanbot", text: "✅ #3 Grabar el video" },
-  { from: "Martín", text: "@list" },
-  { from: "Kanbot", text: "*Por hacer (3)*\n#1 Diseñar la landing\n#2 Configurar el dominio\n#3 Grabar el video" },
+// Los chats de ejemplo se arman en el idioma de la página, igual que respondería el bot.
+const { t } = window.i18n;
+const [task1, task2, task3] = [t("task.1"), t("task.2"), t("task.3")];
+const ADDS = [
+  { from: "Sofi", text: `@add ${task1}` },
+  { from: "Kanbot", text: `✅ #1 ${task1}` },
+  { from: "Martín", text: `@add ${task2}` },
+  { from: "Kanbot", text: `✅ #2 ${task2}` },
+  // El atajo: @@ es lo mismo que @add.
+  { from: "Caro", text: `@@ ${task3}` },
+  { from: "Kanbot", text: `✅ #3 ${task3}` },
 ];
+const LIST = [
+  { from: "Martín", text: "@list" },
+  { from: "Kanbot", text: `*${t("status.todo")} (3)*\n#1 ${task1}\n#2 ${task2}\n#3 ${task3}` },
+];
+
+// Lo primero que se ve: cargar tareas y listarlas.
+const HERO_SCRIPT = [...ADDS, ...LIST];
 
 async function heroLoop(chat) {
   if (reduceMotion) {
@@ -116,27 +138,17 @@ void heroLoop(document.getElementById("hero-chat"));
 // ---------- Story: el chat avanza con el scroll ----------
 
 const STEPS = [
-  [
-    { from: "Sofi", text: "@add Diseñar la landing" },
-    { from: "Kanbot", text: "✅ #1 Diseñar la landing" },
-    { from: "Martín", text: "@add Configurar el dominio" },
-    { from: "Kanbot", text: "✅ #2 Configurar el dominio" },
-    { from: "Caro", text: "@add Grabar el video" },
-    { from: "Kanbot", text: "✅ #3 Grabar el video" },
-  ],
-  [
-    { from: "Martín", text: "@list" },
-    { from: "Kanbot", text: "*Por hacer (3)*\n#1 Diseñar la landing\n#2 Configurar el dominio\n#3 Grabar el video" },
-  ],
+  ADDS,
+  LIST,
   [
     { from: "Sofi", text: "@doing 1" },
-    { from: "Kanbot", text: "➡️ #1 Haciendo: Diseñar la landing" },
+    { from: "Kanbot", text: `➡️ #1 ${t("status.doing")}: ${task1}` },
     { from: "Martín", text: "@done 2" },
-    { from: "Kanbot", text: "➡️ #2 Hecho: Configurar el dominio" },
+    { from: "Kanbot", text: `➡️ #2 ${t("status.done")}: ${task2}` },
   ],
   [
     { from: "Caro", text: "@web" },
-    { from: "Kanbot", text: "🔗 Tablero web:\nkanbot.live/board#k3Yb9…" },
+    { from: "Kanbot", text: `${t("bot.web")}\nkanbot.live/board#k3Yb9…` },
   ],
 ];
 

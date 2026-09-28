@@ -10,6 +10,7 @@ import {
 import pino from "pino";
 import qrcode from "qrcode-terminal";
 import { handleMessage, type Deps } from "./commands.js";
+import { DEFAULT_LANG, MESSAGES, langFromPhone } from "./i18n.js";
 import { FileTicketStore } from "./fileStore.js";
 import { createWebServer } from "./web.js";
 import { WebKeys } from "./webKeys.js";
@@ -35,6 +36,16 @@ function textOf(msg: WAMessage): string | undefined {
   // Los chats con mensajes temporales envuelven el contenido en ephemeralMessage.
   const content = msg.message?.ephemeralMessage?.message ?? msg.message;
   return content?.conversation ?? content?.extendedTextMessage?.text ?? undefined;
+}
+
+/**
+ * Teléfono de quien escribe. WhatsApp puede identificar el chat con un ID anónimo (@lid);
+ * en ese caso el número real viene en participantAlt / remoteJidAlt.
+ */
+function phoneOf(msg: WAMessage): string | undefined {
+  const { participant, participantAlt, remoteJid, remoteJidAlt } = msg.key;
+  const jid = [participantAlt, participant, remoteJidAlt, remoteJid].find((j) => j?.endsWith("@s.whatsapp.net"));
+  return jid?.split("@")[0].split(":")[0];
 }
 
 async function start(): Promise<void> {
@@ -86,18 +97,20 @@ async function start(): Promise<void> {
 
       const isGroup = chat.endsWith("@g.us");
       const sender = msg.pushName ?? (msg.key.participant ?? chat).split("@")[0];
+      const senderPhone = phoneOf(msg);
       let reply: string | null;
       try {
         reply = await handleMessage(deps, {
           boardId: chat,
           sender,
+          senderPhone,
           text,
           isGroup,
           chatName: async () => (isGroup ? (await sock.groupMetadata(chat)).subject : sender),
         });
       } catch (err) {
         console.error("Error procesando mensaje", { chat, err });
-        reply = "⚠️ Hubo un error, probá de nuevo.";
+        reply = MESSAGES[langFromPhone(senderPhone) ?? DEFAULT_LANG].error;
       }
 
       if (reply) {

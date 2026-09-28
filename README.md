@@ -7,12 +7,14 @@ más un tablero web sencillo para verlos y editarlos.
 
 ```
 @add Arreglar la canilla     → ✅ #1 Arreglar la canilla
+@@ Pagar la luz              → ✅ #2 Pagar la luz   (atajo de @add)
 @doing 1                     → ➡️ #1 Haciendo: Arreglar la canilla
 @done 1                      → ➡️ #1 Hecho: Arreglar la canilla
 @list                        → pendientes agrupados por estado + cantidad de hechos
 @remove 1                    → 🗑️ #1 Arreglar la canilla
 @web                         → link al tablero web de este chat
 @web nueva                   → link nuevo (invalida el anterior)
+@lang en                     → fija el idioma del chat (es, en, de, it, sw); @lang auto vuelve al automático
 @help
 ```
 
@@ -20,6 +22,20 @@ Alias: `@ls`, `@rm`. Los comandos con número aceptan varios (`@done 1 2 #3`). T
 
 - Cada chat es un board: un grupo comparte sus tickets; un chat privado con el bot tiene los suyos.
 - En grupos el bot solo responde a comandos conocidos (ignora la charla y las menciones tipo `@juan`).
+
+## Idiomas
+
+Kanbot habla español, inglés, alemán, italiano y suajili.
+
+- **Bot**: responde en el idioma del país de quien escribe, según el código de su número (+54 → es, +49 → de,
+  +39 → it, +254/+255/+256 → sw, +1/+44 → en…). Si no se sabe, en español. `@lang <es|en|de|it|sw>` fija el
+  idioma del chat (también `@idioma`, `@sprache`, `@lingua`, `@lugha`) y `@lang auto` vuelve al automático.
+  Los textos están en `src/i18n.ts`.
+- **Web** (landing, tablero y términos): el idioma elegido en el selector; si no, el del navegador cuando es uno
+  de los cinco y no es inglés; si no, **dónde está la persona** según la zona horaria del navegador (Berlín → de,
+  Roma → it, Nairobi → sw, Buenos Aires → es); si no, inglés. No usa la IP: no hace falta mandarla a un servicio
+  externo ni cargar una base de geolocalización. El tablero abre en el idioma fijado en el chat. Los textos están
+  en `web/i18n.js`, y un test verifica que los cinco idiomas tengan las mismas claves.
 
 ## Hacé tu propio Kanbot en tu proyecto
 
@@ -42,7 +58,8 @@ WhatsApp
 - Respondé citando el mensaje. Si algo falla, respondé "⚠️ Hubo un error, probá de nuevo."
 
 Comandos (cada chat, grupo o privado, es un tablero independiente)
-- @add <texto>: crea un ticket numerado #1, #2… Los números nunca se reutilizan. Máximo 500 caracteres.
+- @add <texto> (o el atajo "@@ <texto>"): crea un ticket numerado #1, #2… Los números nunca se reutilizan.
+  Máximo 500 caracteres.
 - @list (alias @ls): pendientes agrupados por estado (Por hacer, Haciendo) y de los hechos solo la cantidad.
   Marcá con 📝 los que tienen descripción.
 - @doing <n>, @done <n>, @todo <n>: cambian el estado.
@@ -51,6 +68,9 @@ Comandos (cada chat, grupo o privado, es un tablero independiente)
 - @web: responde PUBLIC_URL/board#<clave>, el link al tablero web de ese chat. "@web nueva" genera otra
   clave e invalida la anterior.
 - @help: la ayuda.
+- Idiomas: español, inglés, alemán, italiano y suajili. El bot responde en el idioma del país de quien escribe
+  (código del número; en Baileys el número real puede venir en participantAlt / remoteJidAlt). "@lang <código>"
+  fija el idioma del chat (guardado en su JSON) y "@lang auto" vuelve al automático.
 - En grupos respondé solo a comandos conocidos: ignorá la charla y las menciones tipo @juan.
   En privado, a cualquier otro texto respondé que escriba @help.
 - Separá la lógica de comandos de WhatsApp: una función que recibe el store y el mensaje y devuelve la
@@ -77,6 +97,9 @@ Web (el mismo proceso la sirve con node:http, escuchando en WEB_HOST:PORT, por d
   Referrer-Policy: no-referrer.
 - /: una landing que explica los comandos, con botones a https://wa.me/<número del bot>?text=@help.
 - /terminos: términos y condiciones.
+- Toda la web en los mismos cinco idiomas, con un selector. Sin selección, el idioma sale del navegador (si no es
+  inglés) o de la zona horaria; si no, inglés. Un script bloqueante en el <head> elige el idioma y oculta la página
+  hasta traducirla, para que no haya un destello en otro idioma.
 
 Deploy en un droplet de DigitalOcean (Ubuntu 24.04)
 - deploy/setup.sh: instala Node 22, crea 1 GB de swap, activa ufw (solo SSH) y crea un usuario de sistema.

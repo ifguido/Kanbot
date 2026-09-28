@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Términos y condiciones — Kanbot</title>
+    <title data-i18n="meta.terms.title">Términos y condiciones — Kanbot</title>
     <meta name="description" content="Términos y condiciones de Kanbot, un proyecto personal de Guido Faranna." />
     <meta name="theme-color" content="#ffffff" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -14,6 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
     />
     <link rel="stylesheet" href="/landing.css" />
+    <script src="/i18n.js"></script>
   </head>
   <body>
     <header class="nav">
@@ -23,34 +24,49 @@
           <span>Kanbot</span>
         </a>
         <nav class="nav-links" aria-label="Principal">
-          <a class="label" href="/#como">Cómo funciona</a>
-          <a class="label" href="/#precios">Precios</a>
+          <a class="label" href="/#como" data-i18n="nav.how">Cómo funciona</a>
+          <a class="label" href="/#precios" data-i18n="nav.pricing">Precios</a>
           <a class="label" href="https://github.com/ifguido/Kanbot">GitHub ↗</a>
         </nav>
-        <a class="btn btn-solid btn-sm" href="https://wa.me/5491170736993?text=%40help" target="_blank" rel="noopener"
-          >Probar gratis</a
-        >
+        <div class="nav-actions">
+          <select class="lang-select label" data-lang-select aria-label="Idioma" data-i18n-aria-label="lang.label">
+            <option value="es">ES</option>
+            <option value="en">EN</option>
+            <option value="de">DE</option>
+            <option value="it">IT</option>
+            <option value="sw">SW</option>
+          </select>
+          <a
+            class="btn btn-solid btn-sm"
+            href="https://wa.me/5491170736993?text=%40help"
+            target="_blank"
+            rel="noopener"
+            data-i18n="cta.try"
+            >Probar gratis</a
+          >
+        </div>
       </div>
     </header>
 
     <main>
       <section class="rule">
         <div class="wrap legal-hero">
-          <p class="label muted">Legal</p>
-          <h1>Términos y condiciones</h1>
-          <p class="lead">
+          <p class="label muted" data-i18n="terms.eyebrow">Legal</p>
+          <h1 data-i18n="terms.title">Términos y condiciones</h1>
+          <p class="lead" data-i18n-html="terms.lead">
             Kanbot es un <mark>proyecto personal</mark> de Guido Faranna. No es una empresa ni un servicio comercial.
             Al usarlo (escribirle al bot, sumarlo a un grupo o entrar al tablero web) aceptás estos términos.
           </p>
-          <p class="label muted">Última actualización: 28 de septiembre de 2026</p>
+          <p class="label muted" data-i18n="terms.updated">Última actualización: 28 de septiembre de 2026</p>
+          <p class="label muted terms-note" data-i18n="terms.note"></p>
         </div>
       </section>
 
       <section class="rule">
         <div class="wrap legal">
           <article class="legal-item">
-            <p class="label muted">01 — Qué es Kanbot</p>
-            <div class="legal-body">
+            <p class="label muted" data-i18n="t1.label">01 — Qué es Kanbot</p>
+            <div class="legal-body" data-i18n-html="t1.body">
               <p>
                 Kanbot es un bot de WhatsApp para organizar tareas con comandos (<code>@add</code>, <code>@list</code>,
                 <code>@done</code>, etc.) y un tablero web para verlas y editarlas.
@@ -63,8 +79,8 @@
           </article>
 
           <article class="legal-item">
-            <p class="label muted">02 — El número</p>
-            <div class="legal-body">
+            <p class="label muted" data-i18n="t2.label">02 — El número</p>
+            <div class="legal-body" data-i18n-html="t2.body">
               <p>
                 El número de WhatsApp de Kanbot (+54 9 11 7073-6993) pertenece a <strong>Weball</strong>, una empresa
                 de la que Guido Faranna es cofundador.
@@ -73,8 +89,8 @@
           </article>
 
           <article class="legal-item">
-            <p class="label muted">03 — Tus datos</p>
-            <div class="legal-body">
+            <p class="label muted" data-i18n="t3.label">03 — Tus datos</p>
+            <div class="legal-body" data-i18n-html="t3.body">
               <p>Kanbot guarda solo lo necesario para funcionar:</p>
               <ul>
                 <li>
@@ -85,7 +101,9 @@
                   Las tareas: número, texto, descripción, estado, el nombre de WhatsApp de quien la creó y las fechas.
                 </li>
                 <li>La clave del tablero web de cada chat y el nombre del grupo o contacto.</li>
+                <li>El idioma de cada chat, si se eligió uno con <code>@lang</code>.</li>
               </ul>
+              <p>Para elegir el idioma, el bot mira el código de país del número de quien escribe. Ese dato no se guarda.</p>
               <p>
                 En los grupos, el bot recibe los mensajes como cualquier participante, pero solo guarda las tareas que
                 se crean con comandos. El resto de la charla no se guarda.
@@ -102,8 +120,8 @@
           </article>
 
           <article class="legal-item">
-            <p class="label muted">04 — Plan gratis</p>
-            <div class="legal-body">
+            <p class="label muted" data-i18n="t4.label">04 — Plan gratis</p>
+            <div class="legal-body" data-i18n-html="t4.body">
               <p>El plan gratis está sujeto a lo siguiente:</p>
               <ol class="legal-list">
                 <li><span><strong>Es decisión 100% de Guido Faranna.</strong> El servicio puede cambiar, pausarse o darse de baja en cualquier momento.</span></li>
@@ -114,8 +132,8 @@
           </article>
 
           <article class="legal-item">
-            <p class="label muted">05 — Sin garantías</p>
-            <div class="legal-body">
+            <p class="label muted" data-i18n="t5.label">05 — Sin garantías</p>
+            <div class="legal-body" data-i18n-html="t5.body">
               <p>
                 Kanbot se ofrece tal cual, sin garantía de disponibilidad ni de que los datos no se pierdan. No lo uses
                 para información sensible o crítica.
@@ -124,8 +142,8 @@
           </article>
 
           <article class="legal-item">
-            <p class="label muted">06 — Cambios</p>
-            <div class="legal-body">
+            <p class="label muted" data-i18n="t6.label">06 — Cambios</p>
+            <div class="legal-body" data-i18n-html="t6.body">
               <p>
                 Estos términos pueden cambiar. La versión vigente es siempre la que está en esta página, con su fecha
                 de actualización.
@@ -134,8 +152,8 @@
           </article>
 
           <article class="legal-item">
-            <p class="label muted">07 — Contacto</p>
-            <div class="legal-body">
+            <p class="label muted" data-i18n="t7.label">07 — Contacto</p>
+            <div class="legal-body" data-i18n-html="t7.body">
               <p>Por cualquier consulta: <a href="mailto:guido@weball.me">guido@weball.me</a>.</p>
             </div>
           </article>
@@ -148,23 +166,23 @@
         <div>
           <img src="/favicon.svg" alt="" width="36" height="36" />
           <p class="footer-name">Kanbot</p>
-          <p class="muted">Tareas en WhatsApp</p>
+          <p class="muted" data-i18n="footer.tagline">Tareas en WhatsApp</p>
         </div>
         <div class="footer-col">
-          <p class="label muted">Secciones</p>
-          <a class="label" href="/#como">Cómo funciona</a>
-          <a class="label" href="/#precios">Precios</a>
-          <a class="label" href="/terminos">Términos</a>
+          <p class="label muted" data-i18n="footer.sections">Secciones</p>
+          <a class="label" href="/#como" data-i18n="nav.how">Cómo funciona</a>
+          <a class="label" href="/#precios" data-i18n="nav.pricing">Precios</a>
+          <a class="label" href="/terminos" data-i18n="footer.terms">Términos</a>
         </div>
         <div class="footer-col">
-          <p class="label muted">Links</p>
+          <p class="label muted" data-i18n="footer.links">Links</p>
           <a class="label" href="https://github.com/ifguido/Kanbot">GitHub ↗</a>
           <a class="label" href="https://wa.me/5491170736993?text=%40help" target="_blank" rel="noopener">WhatsApp ↗</a>
         </div>
       </div>
       <div class="footer-strip">
         <div class="wrap footer-strip-inner">
-          <p class="label">© 2026 Kanbot · No afiliado a WhatsApp ni a Meta</p>
+          <p class="label" data-i18n="footer.strip">© 2026 Kanbot · No afiliado a WhatsApp ni a Meta</p>
           <p class="label">kanbot.live</p>
         </div>
       </div>

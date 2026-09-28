@@ -12,6 +12,7 @@ const CSS = "text/css; charset=utf-8";
 const ASSETS: Record<string, { file: string; type: string }> = {
   "/": { file: "landing.html", type: HTML },
   "/landing.js": { file: "landing.js", type: JS },
+  "/i18n.js": { file: "i18n.js", type: JS },
   "/landing.css": { file: "landing.css", type: CSS },
   "/board": { file: "board.html", type: HTML },
   "/terminos": { file: "terminos.html", type: HTML },
@@ -25,9 +26,11 @@ const ASSETS: Record<string, { file: string; type: string }> = {
 
 const MAX_BODY_BYTES = 64 * 1024;
 
+/** El code lo traduce el navegador; el message queda en español para los logs y curl. */
 class HttpError extends Error {
   constructor(
     readonly status: number,
+    readonly code: string,
     message: string,
   ) {
     super(message);
@@ -48,20 +51,24 @@ export function createWebServer({ store, keys }: { store: TicketStore; keys: Web
       res.end(await readFile(new URL(asset.file, WEB_DIR)));
       return;
     }
-    if (!url.pathname.startsWith("/api/")) throw new HttpError(404, "No encontrado");
+    if (!url.pathname.startsWith("/api/")) throw new HttpError(404, "not_found", "No encontrado");
 
     const key = req.headers.authorization?.replace(/^Bearer\s+/i, "") ?? "";
     const entry = await keys.resolve(key);
-    if (!entry) throw new HttpError(401, "Clave inválida");
+    if (!entry) throw new HttpError(401, "invalid_key", "Clave inválida");
     const { boardId } = entry;
 
     if (url.pathname === "/api/board" && req.method === "GET") {
-      return json(res, 200, { name: entry.name, tickets: await store.list(boardId) });
+      return json(res, 200, {
+        name: entry.name,
+        lang: (await store.getLang(boardId)) ?? null,
+        tickets: await store.list(boardId),
+      });
     }
 
     if (url.pathname === "/api/tickets" && req.method === "POST") {
       const fields = parseFields(await readBody(req));
-      if (!fields.title) throw new HttpError(400, "Falta el título");
+      if (!fields.title) throw new HttpError(400, "missing_title", "Falta el título");
       const ticket = await store.add(boardId, { ...fields, title: fields.title, createdBy: "Web" });
       return json(res, 201, ticket);
     }
@@ -71,17 +78,17 @@ export function createWebServer({ store, keys }: { store: TicketStore; keys: Web
       const number = Number(match[1]);
       if (req.method === "PATCH") {
         const ticket = await store.update(boardId, number, parseFields(await readBody(req)));
-        if (!ticket) throw new HttpError(404, `El ticket #${number} no existe`);
+        if (!ticket) throw new HttpError(404, "ticket_not_found", `El ticket #${number} no existe`);
         return json(res, 200, ticket);
       }
       if (req.method === "DELETE") {
-        if (!(await store.remove(boardId, number))) throw new HttpError(404, `El ticket #${number} no existe`);
+        if (!(await store.remove(boardId, number))) throw new HttpError(404, "ticket_not_found", `El ticket #${number} no existe`);
         res.writeHead(204).end();
         return;
       }
     }
 
-    throw new HttpError(404, "No encontrado");
+    throw new HttpError(404, "not_found", "No encontrado");
   }
 
   return createServer((req, res) => {
@@ -89,31 +96,31 @@ export function createWebServer({ store, keys }: { store: TicketStore; keys: Web
     route(req, res).catch((err) => {
       if (!(err instanceof HttpError)) console.error("Error en la web", err);
       if (res.headersSent) return void res.end();
-      const status = err instanceof HttpError ? err.status : 500;
-      json(res, status, { error: err instanceof HttpError ? err.message : "Error interno" });
+      if (err instanceof HttpError) json(res, err.status, { error: err.message, code: err.code });
+      else json(res, 500, { error: "Error interno", code: "internal" });
     });
   });
 }
 
 function parseFields(body: unknown): TicketPatch {
-  if (typeof body !== "object" || body === null) throw new HttpError(400, "JSON inválido");
+  if (typeof body !== "object" || body === null) throw new HttpError(400, "invalid_json", "JSON inválido");
   const { title, description, status } = body as Record<string, unknown>;
   const fields: TicketPatch = {};
 
   if (title !== undefined) {
-    if (typeof title !== "string" || !title.trim()) throw new HttpError(400, "El título no puede estar vacío");
-    if (title.trim().length > MAX_TITLE_LENGTH) throw new HttpError(400, `Título muy largo (máx ${MAX_TITLE_LENGTH})`);
+    if (typeof title !== "string" || !title.trim()) throw new HttpError(400, "empty_title", "El título no puede estar vacío");
+    if (title.trim().length > MAX_TITLE_LENGTH) throw new HttpError(400, "title_too_long", `Título muy largo (máx ${MAX_TITLE_LENGTH})`);
     fields.title = title.trim();
   }
   if (description !== undefined) {
-    if (typeof description !== "string") throw new HttpError(400, "Descripción inválida");
+    if (typeof description !== "string") throw new HttpError(400, "invalid_description", "Descripción inválida");
     if (description.length > MAX_DESCRIPTION_LENGTH) {
-      throw new HttpError(400, `Descripción muy larga (máx ${MAX_DESCRIPTION_LENGTH})`);
+      throw new HttpError(400, "description_too_long", `Descripción muy larga (máx ${MAX_DESCRIPTION_LENGTH})`);
     }
     fields.description = description;
   }
   if (status !== undefined) {
-    if (!isStatus(status)) throw new HttpError(400, "Estado inválido");
+    if (!isStatus(status)) throw new HttpError(400, "invalid_status", "Estado inválido");
     fields.status = status;
   }
   return fields;
@@ -124,13 +131,13 @@ async function readBody(req: IncomingMessage): Promise<unknown> {
   let size = 0;
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > MAX_BODY_BYTES) throw new HttpError(413, "Demasiado grande");
+    if (size > MAX_BODY_BYTES) throw new HttpError(413, "too_large", "Demasiado grande");
     chunks.push(chunk);
   }
   try {
     return JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } catch {
-    throw new HttpError(400, "JSON inválido");
+    throw new HttpError(400, "invalid_json", "JSON inválido");
   }
 }
 
@@ -144,6 +151,8 @@ function setSecurityHeaders(res: ServerResponse): void {
     "Content-Security-Policy",
     [
       "default-src 'self'",
+      // data: para íconos chicos embebidos en el CSS (la flecha del selector de idioma).
+      "img-src 'self' data:",
       // La landing usa Google Fonts.
       "style-src 'self' https://fonts.googleapis.com",
       "font-src https://fonts.gstatic.com",

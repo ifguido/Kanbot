@@ -3,9 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Kanbot — Organizá a tu equipo sin salir de WhatsApp</title>
+    <title data-i18n="meta.landing.title">Kanbot — Organizá a tu equipo sin salir de WhatsApp</title>
     <meta
       name="description"
+      data-i18n-content="meta.landing.description"
       content="Kanbot es un tablero de tareas que vive en tus chats de WhatsApp. @add, @list, @done y listo. Gratis, sin apps y sin cuentas."
     />
     <meta name="theme-color" content="#ffffff" />
@@ -23,6 +24,8 @@
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
     />
     <link rel="stylesheet" href="/landing.css" />
+    <!-- Bloqueante a propósito: decide el idioma antes del primer paint. -->
+    <script src="/i18n.js"></script>
     <script type="module" src="/landing.js"></script>
   </head>
   <body>
@@ -33,11 +36,20 @@
           <span>Kanbot</span>
         </a>
         <nav class="nav-links" aria-label="Principal">
-          <a class="label" href="#como">Cómo funciona</a>
-          <a class="label" href="#precios">Precios</a>
+          <a class="label" href="#como" data-i18n="nav.how">Cómo funciona</a>
+          <a class="label" href="#precios" data-i18n="nav.pricing">Precios</a>
           <a class="label" href="https://github.com/ifguido/Kanbot">GitHub ↗</a>
         </nav>
-        <a class="btn btn-solid btn-sm" data-chat="@help" href="#empezar">Probar gratis</a>
+        <div class="nav-actions">
+          <select class="lang-select label" data-lang-select aria-label="Idioma" data-i18n-aria-label="lang.label">
+            <option value="es">ES</option>
+            <option value="en">EN</option>
+            <option value="de">DE</option>
+            <option value="it">IT</option>
+            <option value="sw">SW</option>
+          </select>
+          <a class="btn btn-solid btn-sm" data-chat="@help" href="#empezar" data-i18n="cta.try">Probar gratis</a>
+        </div>
       </div>
     </header>
 
@@ -46,27 +58,27 @@
       <section class="hero rule">
         <div class="wrap hero-grid">
           <div class="hero-copy">
-            <p class="label muted">Tareas en WhatsApp</p>
-            <h1>Organizá a tu equipo sin salir de <mark>WhatsApp</mark>.</h1>
-            <p class="lead">
+            <p class="label muted" data-i18n="hero.eyebrow">Tareas en WhatsApp</p>
+            <h1 data-i18n-html="hero.title">Organizá a tu equipo sin salir de <mark>WhatsApp</mark>.</h1>
+            <p class="lead" data-i18n-html="hero.lead">
               Kanbot es un tablero de tareas que vive en tus chats. Escribís <code>@add</code> y tu grupo ya tiene su
               propio Trello.
             </p>
             <div class="ctas">
-              <a class="btn btn-solid" data-chat="@help" href="#empezar">Hablar con Kanbot ↗</a>
-              <button class="btn btn-outline" data-group type="button">Agregar a un grupo</button>
+              <a class="btn btn-solid" data-chat="@help" href="#empezar" data-i18n="cta.chat">Hablar con Kanbot ↗</a>
+              <button class="btn btn-outline" data-group type="button" data-i18n="cta.group">Agregar a un grupo</button>
             </div>
             <ul class="facts">
-              <li class="label">Gratis</li>
-              <li class="label">Sin apps</li>
-              <li class="label">Sin cuentas</li>
+              <li class="label" data-i18n="facts.free">Gratis</li>
+              <li class="label" data-i18n="facts.noApps">Sin apps</li>
+              <li class="label" data-i18n="facts.noAccounts">Sin cuentas</li>
             </ul>
           </div>
 
           <div class="hero-visual" aria-hidden="true">
             <div class="float-card fc-1">
-              <span class="label muted">Por hacer</span>
-              <strong>#1 Diseñar la landing</strong>
+              <span class="label muted" data-i18n="status.todo">Por hacer</span>
+              <strong>#1 <span data-i18n="task.1">Diseñar la landing</span></strong>
               <small>Sofi</small>
             </div>
             <div class="phone hero-phone">
@@ -82,16 +94,16 @@
                 <div class="chat-head">
                   <span class="back">‹</span>
                   <span class="avatar">EL</span>
-                  <span class="chat-title"><strong>Equipo Lanzamiento</strong><small>Sofi, Martín, Caro, Kanbot</small></span>
+                  <span class="chat-title"><strong data-i18n="chat.group">Equipo Lanzamiento</strong><small>Sofi, Martín, Caro, Kanbot</small></span>
                 </div>
                 <div class="chat" id="hero-chat"></div>
-                <div class="composer"><span>Mensaje</span><i>↑</i></div>
+                <div class="composer"><span data-i18n="chat.input">Mensaje</span><i>↑</i></div>
                 <span class="home-bar"></span>
               </div>
             </div>
             <div class="float-card fc-2">
-              <span class="label muted">Por hacer</span>
-              <strong>#3 Grabar el video</strong>
+              <span class="label muted" data-i18n="status.todo">Por hacer</span>
+              <strong>#3 <span data-i18n="task.3">Grabar el video</span></strong>
               <small>Caro</small>
             </div>
           </div>
@@ -117,7 +129,7 @@
       <section id="como" class="rule">
         <div class="wrap section-head">
           <span class="num label">01</span>
-          <h2>Cuatro comandos. <mark>Eso es todo.</mark></h2>
+          <h2 data-i18n-html="story.title">Cuatro comandos. <mark>Eso es todo.</mark></h2>
         </div>
 
         <div class="wrap story-body">
@@ -135,10 +147,10 @@
                 <div class="chat-head">
                   <span class="back">‹</span>
                   <span class="avatar">EL</span>
-                  <span class="chat-title"><strong>Equipo Lanzamiento</strong><small>Sofi, Martín, Caro, Kanbot</small></span>
+                  <span class="chat-title"><strong data-i18n="chat.group">Equipo Lanzamiento</strong><small>Sofi, Martín, Caro, Kanbot</small></span>
                 </div>
                 <div class="chat" id="story-chat"></div>
-                <div class="composer"><span>Mensaje</span><i>↑</i></div>
+                <div class="composer"><span data-i18n="chat.input">Mensaje</span><i>↑</i></div>
                 <span class="home-bar"></span>
               </div>
             </div>
@@ -150,16 +162,16 @@
               </div>
               <div class="board-mock">
                 <div class="mock-col">
-                  <h4 class="label">Por hacer <b>1</b></h4>
-                  <div class="mock-card"><span>#3</span> Grabar el video<small>Caro</small></div>
+                  <h4 class="label"><span data-i18n="status.todo">Por hacer</span> <b>1</b></h4>
+                  <div class="mock-card"><span>#3</span> <em data-i18n="task.3">Grabar el video</em><small>Caro</small></div>
                 </div>
                 <div class="mock-col">
-                  <h4 class="label">Haciendo <b>1</b></h4>
-                  <div class="mock-card"><span>#1</span> Diseñar la landing<small>Sofi</small></div>
+                  <h4 class="label"><span data-i18n="status.doing">Haciendo</span> <b>1</b></h4>
+                  <div class="mock-card"><span>#1</span> <em data-i18n="task.1">Diseñar la landing</em><small>Sofi</small></div>
                 </div>
                 <div class="mock-col">
-                  <h4 class="label">Hecho <b>1</b></h4>
-                  <div class="mock-card done"><span>#2</span> Configurar el dominio<small>Martín</small></div>
+                  <h4 class="label"><span data-i18n="status.done">Hecho</span> <b>1</b></h4>
+                  <div class="mock-card done"><span>#2</span> <em data-i18n="task.2">Configurar el dominio</em><small>Martín</small></div>
                 </div>
               </div>
             </div>
@@ -167,37 +179,37 @@
 
           <ol class="steps">
             <li class="step" data-step="0">
-              <span class="label muted">Paso 01</span>
+              <span class="label muted"><span data-i18n="step">Paso</span> 01</span>
               <span class="cmd">@add</span>
-              <h3>Anotá en segundos.</h3>
-              <p>
-                Cualquiera del grupo escribe <code>@add</code> y la tarea queda anotada, numerada y a la vista de todos.
+              <h3 data-i18n="step1.title">Anotá en segundos.</h3>
+              <p data-i18n-html="step1.text">
+                Cualquiera del grupo escribe <code>@add</code> (o <code>@@</code>) y la tarea queda anotada, numerada y a la vista de todos.
                 Sin abrir otra app.
               </p>
               <div class="mini-chat"></div>
             </li>
             <li class="step" data-step="1">
-              <span class="label muted">Paso 02</span>
+              <span class="label muted"><span data-i18n="step">Paso</span> 02</span>
               <span class="cmd">@list</span>
-              <h3>Todos ven lo mismo.</h3>
-              <p>Un <code>@list</code> y el grupo entero sabe qué falta. Chau planillas, chau “¿quién estaba con eso?”.</p>
+              <h3 data-i18n="step2.title">Todos ven lo mismo.</h3>
+              <p data-i18n-html="step2.text">Un <code>@list</code> y el grupo entero sabe qué falta. Chau planillas, chau “¿quién estaba con eso?”.</p>
               <div class="mini-chat"></div>
             </li>
             <li class="step" data-step="2">
-              <span class="label muted">Paso 03</span>
+              <span class="label muted"><span data-i18n="step">Paso</span> 03</span>
               <span class="cmd">@done</span>
-              <h3>Tachá lo que terminaste.</h3>
-              <p>
+              <h3 data-i18n="step3.title">Tachá lo que terminaste.</h3>
+              <p data-i18n-html="step3.text">
                 <code>@doing</code> cuando arrancás, <code>@done</code> cuando terminás. El tablero se ordena solo y todos
                 se enteran.
               </p>
               <div class="mini-chat"></div>
             </li>
             <li class="step" data-step="3">
-              <span class="label muted">Paso 04</span>
+              <span class="label muted"><span data-i18n="step">Paso</span> 04</span>
               <span class="cmd">@web</span>
-              <h3>Y cuando querés ver todo junto…</h3>
-              <p>
+              <h3 data-i18n="step4.title">Y cuando querés ver todo junto…</h3>
+              <p data-i18n-html="step4.text">
                 Kanbot te pasa un link a un tablero kanban: columnas, arrastrar y soltar, descripciones largas. Sin
                 cuentas ni contraseñas.
               </p>
@@ -211,39 +223,39 @@
       <section class="rule">
         <div class="wrap section-head">
           <span class="num label">02</span>
-          <h2>Tu equipo ya vive en WhatsApp. Ahora sus tareas también.</h2>
+          <h2 data-i18n="features.title">Tu equipo ya vive en WhatsApp. Ahora sus tareas también.</h2>
         </div>
         <div class="wrap">
           <div class="feature-grid">
             <article class="feature" data-reveal>
-              <span class="label muted">Grupos</span>
-              <h3>Hecho para grupos</h3>
-              <p>Sumalo al grupo y el tablero es de todos. En privado, es tu lista personal.</p>
+              <span class="label muted" data-i18n="f1.label">Grupos</span>
+              <h3 data-i18n="f1.title">Hecho para grupos</h3>
+              <p data-i18n="f1.text">Sumalo al grupo y el tablero es de todos. En privado, es tu lista personal.</p>
             </article>
             <article class="feature" data-reveal>
-              <span class="label muted">Simple</span>
-              <h3>Cero curva de aprendizaje</h3>
-              <p>Si sabés mandar un WhatsApp, sabés usar Kanbot. Nadie tiene que bajarse nada.</p>
+              <span class="label muted" data-i18n="f2.label">Idiomas</span>
+              <h3 data-i18n="f2.title">Habla tu idioma</h3>
+              <p data-i18n="f2.text">Responde en español, inglés, alemán, italiano o suajili según el país de quien escribe. O fijalo con @lang.</p>
             </article>
             <article class="feature" data-reveal>
-              <span class="label muted">Web</span>
-              <h3>Tablero web con un link</h3>
-              <p>Columnas, arrastrar y soltar, descripciones largas. Se sincroniza con el chat.</p>
+              <span class="label muted" data-i18n="f3.label">Web</span>
+              <h3 data-i18n="f3.title">Tablero web con un link</h3>
+              <p data-i18n="f3.text">Columnas, arrastrar y soltar, descripciones largas. Se sincroniza con el chat.</p>
             </article>
             <article class="feature" data-reveal>
-              <span class="label muted">Velocidad</span>
-              <h3>Rapidísimo</h3>
-              <p>Mandás el comando y la respuesta ya está ahí. Sin cargas, sin esperas.</p>
+              <span class="label muted" data-i18n="f4.label">Velocidad</span>
+              <h3 data-i18n="f4.title">Rapidísimo</h3>
+              <p data-i18n="f4.text">Mandás el comando y la respuesta ya está ahí. Sin cargas, sin esperas.</p>
             </article>
             <article class="feature" data-reveal>
-              <span class="label muted">Silencio</span>
-              <h3>No molesta</h3>
-              <p>En los grupos solo habla cuando lo llamás. La charla sigue como siempre.</p>
+              <span class="label muted" data-i18n="f5.label">Silencio</span>
+              <h3 data-i18n="f5.title">No molesta</h3>
+              <p data-i18n="f5.text">En los grupos solo habla cuando lo llamás. La charla sigue como siempre.</p>
             </article>
             <article class="feature" data-reveal>
-              <span class="label muted">Código</span>
-              <h3>Open source</h3>
-              <p>Todo el código está en GitHub. Nada de cajas negras con tus datos.</p>
+              <span class="label muted" data-i18n="f6.label">Código</span>
+              <h3 data-i18n="f6.title">Open source</h3>
+              <p data-i18n="f6.text">Todo el código está en GitHub. Nada de cajas negras con tus datos.</p>
             </article>
           </div>
         </div>
@@ -253,36 +265,36 @@
       <section id="precios" class="rule">
         <div class="wrap section-head">
           <span class="num label">03</span>
-          <h2>Precios</h2>
+          <h2 data-i18n="pricing.title">Precios</h2>
         </div>
         <div class="wrap">
           <div class="plans">
             <article class="plan plan-inverted" data-reveal>
               <p class="label">Kanbot</p>
-              <p class="price">Gratis</p>
-              <p class="plan-desc">Sumá a Kanbot a tus chats y empezá ahora. Para siempre.</p>
+              <p class="price" data-i18n="free.price">Gratis</p>
+              <p class="plan-desc" data-i18n="free.desc">Sumá a Kanbot a tus chats y empezá ahora. Para siempre.</p>
               <ul>
-                <li>Grupos y chats privados</li>
-                <li>Tableros ilimitados</li>
-                <li>Tablero web con un link</li>
-                <li>Sin cuentas ni tarjetas</li>
+                <li data-i18n="free.1">Grupos y chats privados</li>
+                <li data-i18n="free.2">Tableros ilimitados</li>
+                <li data-i18n="free.3">Tablero web con un link</li>
+                <li data-i18n="free.4">Sin cuentas ni tarjetas</li>
               </ul>
-              <p class="label plan-note">Sujeto a los <a href="/terminos">términos</a></p>
-              <a class="btn btn-invert" data-chat="@help" href="#empezar">Empezar gratis ↗</a>
+              <p class="label plan-note" data-i18n-html="free.terms">Sujeto a los <a href="/terminos">términos</a></p>
+              <a class="btn btn-invert" data-chat="@help" href="#empezar" data-i18n="free.cta">Empezar gratis ↗</a>
             </article>
             <article class="plan" data-reveal>
               <p class="label muted">Self-hosted</p>
-              <p class="price">USD 100 <span class="label muted">Pago único</span></p>
-              <p class="plan-desc">
+              <p class="price">USD 100 <span class="label muted" data-i18n="self.once">Pago único</span></p>
+              <p class="plan-desc" data-i18n="self.desc">
                 Tu propio Kanbot, con tu número y tus datos en tu servidor. Te guiamos y lo dejamos funcionando.
               </p>
               <ul>
-                <li>Instalación y configuración completa</li>
-                <li>Con tu propio número de WhatsApp</li>
-                <li>Tus datos quedan en tu servidor</li>
-                <li>En un servidor gratis o un droplet de USD 4/mes</li>
+                <li data-i18n="self.1">Instalación y configuración completa</li>
+                <li data-i18n="self.2">Con tu propio número de WhatsApp</li>
+                <li data-i18n="self.3">Tus datos quedan en tu servidor</li>
+                <li data-i18n="self.4">En un servidor gratis o un droplet de USD 4/mes</li>
               </ul>
-              <a class="btn btn-outline" data-chat="Hola! Quiero Kanbot self-hosted 🙌" href="#empezar">Quiero el mío ↗</a>
+              <a class="btn btn-outline" data-chat="Hola! Quiero Kanbot self-hosted 🙌" href="#empezar" data-i18n="self.cta">Quiero el mío ↗</a>
             </article>
           </div>
         </div>
@@ -291,13 +303,13 @@
       <!-- ================= CTA FINAL ================= -->
       <section id="empezar" class="final">
         <div class="wrap final-grid">
-          <p class="label">04 — Empezar</p>
+          <p class="label" data-i18n="final.label">04 — Empezar</p>
           <div>
-            <h2>Arrancá en diez segundos.</h2>
-            <p>Abrí el chat, escribí <code>@help</code> y listo. O sumalo directo a tu grupo.</p>
+            <h2 data-i18n="final.title">Arrancá en diez segundos.</h2>
+            <p data-i18n-html="final.text">Abrí el chat, escribí <code>@help</code> y listo. O sumalo directo a tu grupo.</p>
             <div class="ctas">
-              <a class="btn btn-invert" data-chat="@help" href="#empezar">Hablar con Kanbot ↗</a>
-              <button class="btn btn-outline-invert" data-group type="button">Agregar a un grupo</button>
+              <a class="btn btn-invert" data-chat="@help" href="#empezar" data-i18n="cta.chat">Hablar con Kanbot ↗</a>
+              <button class="btn btn-outline-invert" data-group type="button" data-i18n="cta.group">Agregar a un grupo</button>
             </div>
           </div>
         </div>
@@ -309,23 +321,23 @@
         <div>
           <img src="/favicon.svg" alt="" width="36" height="36" />
           <p class="footer-name">Kanbot</p>
-          <p class="muted">Tareas en WhatsApp</p>
+          <p class="muted" data-i18n="footer.tagline">Tareas en WhatsApp</p>
         </div>
         <div class="footer-col">
-          <p class="label muted">Secciones</p>
-          <a class="label" href="#como">Cómo funciona</a>
-          <a class="label" href="#precios">Precios</a>
-          <a class="label" href="/terminos">Términos</a>
+          <p class="label muted" data-i18n="footer.sections">Secciones</p>
+          <a class="label" href="#como" data-i18n="nav.how">Cómo funciona</a>
+          <a class="label" href="#precios" data-i18n="nav.pricing">Precios</a>
+          <a class="label" href="/terminos" data-i18n="footer.terms">Términos</a>
         </div>
         <div class="footer-col">
-          <p class="label muted">Links</p>
+          <p class="label muted" data-i18n="footer.links">Links</p>
           <a class="label" href="https://github.com/ifguido/Kanbot">GitHub ↗</a>
           <a class="label" data-chat="@help" href="#empezar">WhatsApp ↗</a>
         </div>
       </div>
       <div class="footer-strip">
         <div class="wrap footer-strip-inner">
-          <p class="label">© 2026 Kanbot · No afiliado a WhatsApp ni a Meta</p>
+          <p class="label" data-i18n="footer.strip">© 2026 Kanbot · No afiliado a WhatsApp ni a Meta</p>
           <p class="label">kanbot.live</p>
         </div>
       </div>
@@ -333,21 +345,21 @@
 
     <dialog id="group-dialog" class="sheet">
       <div class="sheet-head">
-        <span class="label">Agregar a un grupo</span>
-        <button class="sheet-close label" type="button" data-close aria-label="Cerrar">Cerrar ✕</button>
+        <span class="label" data-i18n="dialog.head">Agregar a un grupo</span>
+        <button class="sheet-close label" type="button" data-close aria-label="Cerrar" data-i18n="dialog.close">Cerrar ✕</button>
       </div>
       <div class="sheet-body">
-        <h3>Sumá a Kanbot a tu grupo</h3>
+        <h3 data-i18n="dialog.title">Sumá a Kanbot a tu grupo</h3>
         <ol class="howto">
-          <li><span><strong>Guardá el contacto</strong> de Kanbot en tu celular.</span></li>
-          <li><span>En el grupo: <strong>Info del grupo → Añadir participante → Kanbot</strong>.</span></li>
-          <li><span>Escribí <code>@help</code> en el grupo. Listo.</span></li>
+          <li><span data-i18n-html="dialog.1"><strong>Guardá el contacto</strong> de Kanbot en tu celular.</span></li>
+          <li><span data-i18n-html="dialog.2">En el grupo: <strong>Info del grupo → Añadir participante → Kanbot</strong>.</span></li>
+          <li><span data-i18n-html="dialog.3">Escribí <code>@help</code> en el grupo. Listo.</span></li>
         </ol>
         <div class="ctas">
-          <a class="btn btn-solid" href="/kanbot.vcf" download>Guardar contacto</a>
-          <a class="btn btn-outline" data-chat="@help" href="#empezar">Abrir chat ↗</a>
+          <a class="btn btn-solid" href="/kanbot.vcf" download data-i18n="dialog.save">Guardar contacto</a>
+          <a class="btn btn-outline" data-chat="@help" href="#empezar" data-i18n="dialog.open">Abrir chat ↗</a>
         </div>
-        <p class="label muted fineprint">O agendalo a mano: +54 9 11 7073-6993</p>
+        <p class="label muted fineprint" data-i18n="dialog.manual">O agendalo a mano: +54 9 11 7073-6993</p>
       </div>
     </dialog>
   </body>

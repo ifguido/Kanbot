@@ -1,4 +1,5 @@
 import path from "node:path";
+import { isLang, type Lang } from "./i18n.js";
 import { KeyedMutex, readJson, writeJsonAtomic } from "./jsonFile.js";
 import type { NewTicket, Status, Ticket, TicketPatch, TicketStore } from "./types.js";
 
@@ -16,6 +17,8 @@ interface StoredTicket {
 interface BoardFile {
   nextNumber: number;
   tickets: StoredTicket[];
+  /** Fijado con @lang. Sin este campo, el chat usa el idioma automático. */
+  lang?: Lang;
 }
 
 /**
@@ -26,6 +29,20 @@ export class FileTicketStore implements TicketStore {
   private mutex = new KeyedMutex();
 
   constructor(private readonly dir: string) {}
+
+  async getLang(boardId: string): Promise<Lang | undefined> {
+    const { lang } = await this.read(boardId);
+    return isLang(lang) ? lang : undefined;
+  }
+
+  setLang(boardId: string, lang: Lang | undefined): Promise<void> {
+    return this.mutex.run(boardId, async () => {
+      const board = await this.read(boardId);
+      if (lang) board.lang = lang;
+      else delete board.lang;
+      await this.write(boardId, board);
+    });
+  }
 
   add(boardId: string, ticket: NewTicket): Promise<Ticket> {
     return this.mutex.run(boardId, async () => {

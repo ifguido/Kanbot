@@ -2,7 +2,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { HELP_TEXT, handleMessage, parseCommand, type Deps } from "../src/commands.js";
+import { handleMessage, helpText, parseCommand, type Deps } from "../src/commands.js";
+import { langFromPhone } from "../src/i18n.js";
 import { FileTicketStore } from "../src/fileStore.js";
 import { WebKeys } from "../src/webKeys.js";
 
@@ -34,13 +35,42 @@ describe("parseCommand", () => {
     expect(parseCommand("@rm 4")).toEqual({ kind: "remove", numbers: [4] });
     expect(parseCommand("@foo")).toEqual({ kind: "unknown", name: "foo" });
   });
+
+  it("treats @@ as @add", () => {
+    expect(parseCommand("@@ Comprar pan")).toEqual({ kind: "add", title: "Comprar pan" });
+    expect(parseCommand("@@Comprar pan")).toEqual({ kind: "add", title: "Comprar pan" });
+    expect(parseCommand("@@")).toEqual({ kind: "add", title: "" });
+  });
+
+  it("parses the language command and its aliases", () => {
+    expect(parseCommand("@lang EN")).toEqual({ kind: "lang", value: "en" });
+    expect(parseCommand("@idioma auto")).toEqual({ kind: "lang", value: "auto" });
+    expect(parseCommand("@sprache de")).toEqual({ kind: "lang", value: "de" });
+    expect(parseCommand("@web neu")).toEqual({ kind: "web", rotate: true });
+  });
+});
+
+describe("langFromPhone", () => {
+  it("maps country codes to languages", () => {
+    expect(langFromPhone("5491122334455")).toBe("es");
+    expect(langFromPhone("4915112345678")).toBe("de");
+    expect(langFromPhone("393331234567")).toBe("it");
+    expect(langFromPhone("254712345678")).toBe("sw");
+    expect(langFromPhone("255712345678")).toBe("sw");
+    expect(langFromPhone("14155552671")).toBe("en");
+    expect(langFromPhone("18095551234")).toBe("es");
+    expect(langFromPhone("33612345678")).toBeUndefined();
+    expect(langFromPhone(undefined)).toBeUndefined();
+  });
 });
 
 describe("handleMessage", () => {
   let dir: string;
   let deps: Deps;
-  const send = (text: string, { boardId = "5491100000000@s.whatsapp.net", isGroup = false } = {}) =>
-    handleMessage(deps, { boardId, sender: "Guido", text, isGroup, chatName: async () => "Mi chat" });
+  const send = (
+    text: string,
+    { boardId = "5491100000000@s.whatsapp.net", isGroup = false, senderPhone = undefined as string | undefined } = {},
+  ) => handleMessage(deps, { boardId, sender: "Guido", senderPhone, text, isGroup, chatName: async () => "Mi chat" });
 
   beforeEach(async () => {
     dir = await mkdtemp(path.join(tmpdir(), "ticketsapp-"));
@@ -53,6 +83,32 @@ describe("handleMessage", () => {
 
   afterEach(async () => {
     await rm(dir, { recursive: true, force: true });
+  });
+
+  it("adds with the @@ shortcut", async () => {
+    expect(await send("@@ Comprar hielo")).toBe("✅ #1 Comprar hielo");
+    expect(await send("@@")).toMatch(/Falta el texto/);
+  });
+
+  it("answers in the language of the sender's country", async () => {
+    const group = { boardId: "123@g.us", isGroup: true };
+    await send("@add Milch kaufen", { ...group, senderPhone: "4915112345678" });
+    expect(await send("@list", { ...group, senderPhone: "4915112345678" })).toBe("*Zu erledigen (1)*\n#1 Milch kaufen");
+    expect(await send("@list", { ...group, senderPhone: "393331234567" })).toBe("*Da fare (1)*\n#1 Milch kaufen");
+    expect(await send("@done 1", { ...group, senderPhone: "254712345678" })).toBe(
+      "➡️ #1 Zimekamilika: Milch kaufen",
+    );
+    expect(await send("@list", { ...group, senderPhone: "14155552671" })).toBe("Nothing pending 🎉\n\n✔️ 1 done");
+  });
+
+  it("lets a chat pin its language with @lang, and go back to auto", async () => {
+    const german = { senderPhone: "4915112345678" };
+    expect(await send("@lang it", german)).toBe("🌐 Lingua: Italiano");
+    expect(await send("@list", german)).toBe("Nessun ticket 🎉");
+    expect(await send("@lang xx", german)).toMatch(/^Lingue: es, en, de, it, sw/);
+    expect(await send("@lang auto", german)).toMatch(/^🌐 Automatische Sprache/);
+    expect(await send("@list", german)).toBe("Keine Tickets 🎉");
+    expect(await send("@help", { senderPhone: "254712345678" })).toBe(helpText("sw"));
   });
 
   it("adds, lists and removes tickets", async () => {
@@ -117,7 +173,7 @@ describe("handleMessage", () => {
   });
 
   it("helps in private chats", async () => {
-    expect(await send("@help")).toBe(HELP_TEXT);
+    expect(await send("@help")).toBe(helpText("es"));
     expect(await send("hola")).toMatch(/@help/);
     expect(await send("@foo")).toContain("No conozco @foo");
   });
