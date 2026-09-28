@@ -16,6 +16,16 @@ $DOMAIN {
 	reverse_proxy 127.0.0.1:3000
 }
 EOF
+
+# Con dominio propio, www.dominio redirige al dominio (necesita el CNAME/A de www en el DNS).
+if [[ "$DOMAIN" != *.sslip.io ]]; then
+  cat >> /etc/caddy/Caddyfile <<EOF
+
+www.$DOMAIN {
+	redir https://$DOMAIN{uri} permanent
+}
+EOF
+fi
 systemctl enable caddy >/dev/null
 systemctl restart caddy
 
