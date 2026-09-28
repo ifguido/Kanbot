@@ -51,11 +51,18 @@ npm run dev        # compila, arranca y muestra el QR; datos en ./data
    npm run deploy -- root@IP
    ```
    Corre los tests, compila, copia a `/opt/ticketsapp` y reinicia el servicio.
-4. Escanear el QR (solo la primera vez):
+4. Vincular WhatsApp (solo la primera vez). Lo más confiable es con código, en el droplet:
    ```bash
-   ssh root@IP journalctl -u ticketsapp -f
+   systemctl stop ticketsapp
+   cd /opt/ticketsapp
+   sudo -u ticketsapp DATA_DIR=/var/lib/ticketsapp PAIRING_PHONE=549XXXXXXXXXX node dist/index.js
    ```
-   En el celular del bot: WhatsApp → Dispositivos vinculados → Vincular dispositivo.
+   `PAIRING_PHONE` es el número del bot con código de país, sin `+`. Imprime un código de 8 letras:
+   en el celular del bot, WhatsApp → Dispositivos vinculados → Vincular dispositivo →
+   **Vincular con el número de teléfono**. Cuando diga `✅ Conectado a WhatsApp`, Ctrl+C y
+   `systemctl start ticketsapp`.
+
+   Alternativa con QR: `journalctl -u ticketsapp -f -o cat -n 0` y escanear el último que aparezca.
 
 Para actualizar, repetir el paso 3.
 

@@ -1,6 +1,12 @@
 import { rm } from "node:fs/promises";
 import path from "node:path";
-import { DisconnectReason, makeWASocket, useMultiFileAuthState, type WAMessage } from "baileys";
+import {
+  DisconnectReason,
+  fetchLatestBaileysVersion,
+  makeWASocket,
+  useMultiFileAuthState,
+  type WAMessage,
+} from "baileys";
 import pino from "pino";
 import qrcode from "qrcode-terminal";
 import { handleMessage } from "./commands.js";
@@ -8,6 +14,8 @@ import { FileTicketStore } from "./fileStore.js";
 
 const DATA_DIR = path.resolve(process.env.DATA_DIR ?? "data");
 const AUTH_DIR = path.join(DATA_DIR, "auth");
+/** Si está definido (ej. 5491122334455), se vincula con código de 8 letras en vez de QR. */
+const PAIRING_PHONE = process.env.PAIRING_PHONE?.replace(/\D/g, "");
 
 const store = new FileTicketStore(path.join(DATA_DIR, "boards"));
 const logger = pino({ level: process.env.LOG_LEVEL ?? "warn" });
@@ -20,12 +28,22 @@ function textOf(msg: WAMessage): string | undefined {
 
 async function start(): Promise<void> {
   const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
-  const sock = makeWASocket({ auth: state, logger });
+  // WhatsApp rechaza la vinculación si la versión del cliente quedó vieja.
+  const { version } = await fetchLatestBaileysVersion();
+  const sock = makeWASocket({ auth: state, logger, version });
+  let pairingRequested = false;
 
   sock.ev.on("creds.update", saveCreds);
 
   sock.ev.on("connection.update", async ({ connection, lastDisconnect, qr }) => {
-    if (qr) {
+    if (qr && PAIRING_PHONE) {
+      if (!pairingRequested && !state.creds.registered) {
+        pairingRequested = true;
+        const code = await sock.requestPairingCode(PAIRING_PHONE);
+        console.log(`Código de vinculación: ${code}`);
+        console.log("En el celular del bot: Dispositivos vinculados → Vincular con el número de teléfono");
+      }
+    } else if (qr) {
       console.log("Escaneá este QR desde WhatsApp → Dispositivos vinculados:");
       qrcode.generate(qr, { small: true });
     }
